@@ -51,9 +51,13 @@ function create() {
     // Create Bases
     bases = game.add.group();
     bases.enableBody = true;
+    
     var playerbase = bases.create(32, game.world.height - 214, 'base');
+    playerbase.tint = 0x348899;
     playerbase.body.immovable = true;
+
     var enemybase = bases.create(game.world.width - 232, game.world.height - 214, 'base');
+    enemybase.tint = 0x962D3E;
     enemybase.body.immovable = true;
 
     // Combatants
@@ -126,6 +130,7 @@ function addPlayerHero() {
     comb.body.gravity.y = 500;
     comb.body.collideWorldBounds = true;
     comb.body.velocity.x = 100;
+    comb.tint = 0x348899;
 }
 
 function addEnemyHero() {
@@ -138,4 +143,5 @@ function addEnemyHero() {
     comb.body.gravity.y = 500;
     comb.body.collideWorldBounds = true;
     comb.body.velocity.x = -100;
+    comb.tint = 0x962D3E;
 }
