@@ -1,5 +1,8 @@
-
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+/*
+ * War-like-type-kinda game with
+ * PHASER JS
+ */
+var game = new Phaser.Game(800, 600, Phaser.AUTO, 'stage', { preload: preload, create: create, update: update });
 
 function preload() {
     // Preload our assets
@@ -10,46 +13,55 @@ function preload() {
     game.load.image('base', 'img/base.gif');
 }
 
-var player;
-var platforms;
-var cursors;
-
-var stars;
-var score = 0;
-var scoreText;
-var combatants;
+var player,
+platforms,
+cursors,
+stars,
+score = 0,
+scoreText,
+pHeroes,
+eHeroes,
+heroes,
+bases;
 
 function create() {
     // Event listeners
-    document.getElementById('spawnFighter').addEventListener('click', addCombatant, false);
+    document.getElementById('spawnHero').addEventListener('click', addPlayerHero, false);
+    document.getElementById('spawnEnemy').addEventListener('click', addEnemyHero, false);
 
-    // Increasing boundaries past the canvas
+    // Map boundaries
     game.world.setBounds(0, 0, 1600, 600);
 
-    // We're going to be using physics, so enable the Arcade Physics system
+    // Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    // A simple background for our game
+    // Simple Background
     var sky = game.add.sprite(0, 0, 'sky');
     sky.scale.setTo(2, 2);
 
     platforms = game.add.group();
-    // We will enable physics for any object that is created in this group
-    platforms.enableBody = true;
-
+    platforms.enableBody = true; // Enables physics body
+    // Set the ground
     var ground = platforms.create(0, game.world.height - 64, 'ground');
     ground.alpha = 0.75;
-    // Scale it to fit the width of the game (the original sprite is 400x32 in size)
     ground.scale.setTo(32, 32);
     // This stops it from falling away when you jump on it
     ground.body.immovable = true;
 
     // Create Bases
-    var playerbase = game.add.sprite(32, game.world.height - 214, 'base');
-    var enemybase = game.add.sprite(game.world.width - 232, game.world.height - 214, 'base');
+    bases = game.add.group();
+    bases.enableBody = true;
+    var playerbase = bases.create(32, game.world.height - 214, 'base');
+    playerbase.body.immovable = true;
+    var enemybase = bases.create(game.world.width - 232, game.world.height - 214, 'base');
+    enemybase.body.immovable = true;
 
     // Combatants
-    combatants = game.add.group();
+    // heroes = game.add.group();
+    pHeroes = game.add.group();
+    eHeroes = game.add.group();
+    // heroes.add(pHeroes);
+    // heroes.add(eHeroes);
 
     // The score
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
@@ -59,16 +71,30 @@ function create() {
     cursors = game.input.keyboard.createCursorKeys();
 
     // Camera
-    game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
+    // game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
     style = 'STYLE_PLATFORMER';
     
 }
 
 function update() {
+    // Collisions
+    game.physics.arcade.collide(pHeroes, platforms);
+    game.physics.arcade.collide(eHeroes, platforms);
+    game.physics.arcade.collide(pHeroes, bases);
+    game.physics.arcade.collide(eHeroes, bases);
+    game.physics.arcade.collide(pHeroes, eHeroes);
 
-    //  Collide the player with the platforms
-    game.physics.arcade.collide(player, platforms);
-    game.physics.arcade.collide(combatants, platforms);
+    pHeroes.forEach(function(item) {
+        if(item.body.velocity.x < 100) {
+            item.body.velocity.x += 10;
+        }
+    });
+
+    eHeroes.forEach(function(item) {
+        if(item.body.velocity.x > -100) {
+            item.body.velocity.x -= 10;
+        }
+    });
 
     if (cursors.up.isDown) {
         game.camera.y -= 4;
@@ -84,14 +110,28 @@ function update() {
 
 }
 
-function addCombatant() {
-    // Send combatant
-    var comb = combatants.create(32, game.world.height - 214, 'fighter');
+function addPlayerHero() {
+    var comb = pHeroes.create(32, game.world.height - 214, 'fighter');
     comb.team = 1;
     comb.scale.setTo(0.1, 0.1);
     game.physics.arcade.enable(comb);
+    comb.anchor.setTo(.5,.5);
+    comb.scale.x *= -1;
     comb.body.bounce.y = 0.2;
+    comb.body.bounce.x = 1.5;
     comb.body.gravity.y = 500;
     comb.body.collideWorldBounds = true;
     comb.body.velocity.x = 100;
+}
+
+function addEnemyHero() {
+    var comb = eHeroes.create(game.world.width - 232, game.world.height - 214, 'fighter');
+    comb.team = 0;
+    comb.scale.setTo(0.1, 0.1);
+    game.physics.arcade.enable(comb);
+    comb.body.bounce.y = 0.2;
+    comb.body.bounce.x = 1.5;
+    comb.body.gravity.y = 500;
+    comb.body.collideWorldBounds = true;
+    comb.body.velocity.x = -100;
 }
