@@ -73,7 +73,11 @@ function create() {
     // Camera
     // game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
     style = 'STYLE_PLATFORMER';
-    
+
+    // TEST
+    // Spawn a couple fighters
+    addPlayerHero();
+    addEnemyHero();
 }
 
 function update() {
