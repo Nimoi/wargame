@@ -8,7 +8,6 @@ function preload() {
     // Preload our assets
     game.load.image('sky', 'img/sky.png');
     game.load.image('ground', 'img/platform.png');
-    game.load.image('llor', 'img/llorenteRender.png');
     game.load.image('fighter', 'img/goomba.png');
     game.load.image('base', 'img/base.gif');
 }
@@ -22,7 +21,8 @@ scoreText,
 pHeroes,
 eHeroes,
 heroes,
-bases;
+bases,
+hitText;
 
 function create() {
     // Event listeners
@@ -71,6 +71,8 @@ function create() {
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
     scoreText.fixedToCamera = true;
 
+    hitText = game.add.group();
+
     // Controls
     cursors = game.input.keyboard.createCursorKeys();
 
@@ -90,7 +92,7 @@ function update() {
     game.physics.arcade.collide(eHeroes, platforms);
     game.physics.arcade.collide(pHeroes, bases);
     game.physics.arcade.collide(eHeroes, bases);
-    game.physics.arcade.collide(pHeroes, eHeroes);
+    game.physics.arcade.collide(pHeroes, eHeroes, damage);
 
     pHeroes.forEach(function(item) {
         if(item.body.velocity.x < 100) {
@@ -101,6 +103,17 @@ function update() {
     eHeroes.forEach(function(item) {
         if(item.body.velocity.x > -100) {
             item.body.velocity.x -= 10;
+        }
+    });
+
+    hitText.forEach(function(item) {
+        if(!item) {
+            return;
+        }
+        item.alpha -= 0.05;
+        item.position.y -= 6;
+        if(item.alpha <= 0) {
+            item.destroy();
         }
     });
 
@@ -121,7 +134,8 @@ function update() {
 function addPlayerHero() {
     var comb = pHeroes.create(32, game.world.height - 214, 'fighter');
     comb.team = 1;
-    comb.scale.setTo(0.1, 0.1);
+    comb.hp = 10;
+    comb.scale.setTo(0.1,0.1);
     game.physics.arcade.enable(comb);
     comb.anchor.setTo(.5,.5);
     comb.scale.x *= -1;
@@ -136,6 +150,7 @@ function addPlayerHero() {
 function addEnemyHero() {
     var comb = eHeroes.create(game.world.width - 232, game.world.height - 214, 'fighter');
     comb.team = 0;
+    comb.hp = 10;
     comb.scale.setTo(0.1, 0.1);
     game.physics.arcade.enable(comb);
     comb.body.bounce.y = 0.2;
@@ -144,4 +159,33 @@ function addEnemyHero() {
     comb.body.collideWorldBounds = true;
     comb.body.velocity.x = -100;
     comb.tint = 0x962D3E;
+}
+
+function damage(pHero, eHero) {
+    pHero.hp -= 1;
+    eHero.hp -= 1;
+
+    var pDamText = game.add.text(pHero.body.position.x, pHero.body.position.y, '-1', { fontSize: '12px', fill: '#E74C3C' });
+    var eDamText = game.add.text(eHero.body.position.x, eHero.body.position.y, '-1', { fontSize: '12px', fill: '#E74C3C' });
+    hitText.add(pDamText);
+    hitText.add(eDamText);
+
+    killCheck(pHero);
+    killCheck(eHero);
+}
+
+function killCheck(item) {
+    if(!item.dieAt) {
+        if(item.hp <= 0) {
+            item.body.velocity.x *= 3;
+            item.body.velocity.y = -100;
+            item.body.collideWorldBounds = false;
+            item.body.angularVelocity = game.rnd.integerInRange(100, 200);
+            item.body.angularDrag = game.rnd.integerInRange(0, 100);
+            item.body.checkCollision.up = false;
+            item.body.checkCollision.down = false;
+            item.body.checkCollision.left = false;
+            item.body.checkCollision.right = false;
+        }
+    }
 }
