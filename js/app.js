@@ -126,9 +126,9 @@ var app = {
         }
     },
     addPlayerHero: function(classType) {
-        var comb = app.pHeroes.create(32, game.world.height - 214, 'goomba');
+        var comb = app.pHeroes.create(32, game.world.height - 214, 'fighter');
         // Scale and enable physics
-        comb.scale.setTo(0.1,0.1);
+        // comb.scale.setTo(0.1,0.1);
         game.physics.arcade.enable(comb);
         // Class stats
         comb.classType = classType;
@@ -136,7 +136,7 @@ var app = {
         comb.hp = 10;
         // Flip sprite
         comb.anchor.setTo(.5,.5);
-        comb.scale.x *= -1;
+        // comb.scale.x *= -1;
         // Body physics
         comb.body.bounce.y = 0.2;
         comb.body.bounce.x = 1.5;
@@ -146,7 +146,7 @@ var app = {
         // comb.tint = 0x348899;
     },
     addEnemyHero: function(classType) {
-        var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, 'goomba');
+        var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, 'enemy');
         // Scale and enable physics
         comb.scale.setTo(0.1, 0.1);
         game.physics.arcade.enable(comb);
@@ -202,11 +202,8 @@ function create() {
 function update() {
     app.update();
 }
-<<<<<<< Updated upstream
 
 function autoSpawn() {
     app.addEnemyHero();
     window.setTimeout(autoSpawn, 2000);
 }
-=======
->>>>>>> Stashed changes
