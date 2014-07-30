@@ -11,17 +11,24 @@ var app = {
     eHeroes: undefined, // Enemy heroes
     bases: undefined,
     hitText: undefined,
+    /*
+     * Init
+     */
     preload: function() {
         // Preload our assets
         game.load.image('sky', 'img/sky.png');
         game.load.image('ground', 'img/platform.png');
-        game.load.image('fighter', 'img/goomba.png');
+        game.load.image('goomba', 'img/goomba.png');
         game.load.image('base', 'img/base.gif');
     },
     create: function() {
         // Event listeners
-        document.getElementById('spawnHero').addEventListener('click', app.addPlayerHero, false);
-        document.getElementById('spawnEnemy').addEventListener('click', app.addEnemyHero, false);
+        document.getElementById('spawnMiner').addEventListener('click', function() {
+            app.addPlayerHero('miner');
+        }, false);
+        document.getElementById('spawnFighter').addEventListener('click', function() {
+            app.addPlayerHero('fighter');
+        }, false);
 
         // Map boundaries
         game.world.setBounds(0, 0, 1600, 600);
@@ -39,7 +46,6 @@ var app = {
         var ground = this.platforms.create(0, game.world.height - 64, 'ground');
         ground.alpha = 0.75;
         ground.scale.setTo(32, 32);
-        // This stops it from falling away when you jump on it
         ground.body.immovable = true;
 
         // Create Bases
@@ -72,6 +78,9 @@ var app = {
         // Spawn enemy fighters
         autoSpawn();
     },
+    /*
+     * Game loop
+     */
     update: function() {
         // Collisions
         game.physics.arcade.collide(app.pHeroes, app.platforms);
@@ -115,8 +124,9 @@ var app = {
             game.camera.x += 4;
         }
     },
-    addPlayerHero: function() {
-        var comb = app.pHeroes.create(32, game.world.height - 214, 'fighter');
+    addPlayerHero: function(classType) {
+        var comb = app.pHeroes.create(32, game.world.height - 214, 'goomba');
+        comb.classType = classType;
         comb.team = 1;
         comb.hp = 10;
         comb.scale.setTo(0.1,0.1);
@@ -130,8 +140,9 @@ var app = {
         comb.body.velocity.x = 100;
         comb.tint = 0x348899;
     },
-    addEnemyHero: function() {
-        var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, 'fighter');
+    addEnemyHero: function(classType) {
+        var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, 'goomba');
+        comb.classType = classType;
         comb.team = 0;
         comb.hp = 10;
         comb.scale.setTo(0.1, 0.1);
