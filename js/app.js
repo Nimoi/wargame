@@ -69,9 +69,8 @@ var app = {
         style = 'STYLE_PLATFORMER';
 
         // TEST
-        // Spawn a couple fighters
-        this.addPlayerHero();
-        this.addEnemyHero();
+        // Spawn enemy fighters
+        autoSpawn();
     },
     update: function() {
         // Collisions
@@ -183,4 +182,9 @@ function create() {
 
 function update() {
     app.update();
+}
+
+function autoSpawn() {
+    app.addEnemyHero();
+    window.setTimeout(autoSpawn, 2000);
 }
