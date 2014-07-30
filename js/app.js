@@ -126,11 +126,11 @@ var app = {
     },
     addPlayerHero: function(classType) {
         var comb = app.pHeroes.create(32, game.world.height - 214, 'goomba');
+        comb.scale.setTo(0.1,0.1);
+        game.physics.arcade.enable(comb);
         comb.classType = classType;
         comb.team = 1;
         comb.hp = 10;
-        comb.scale.setTo(0.1,0.1);
-        game.physics.arcade.enable(comb);
         comb.anchor.setTo(.5,.5);
         comb.scale.x *= -1;
         comb.body.bounce.y = 0.2;
@@ -142,11 +142,11 @@ var app = {
     },
     addEnemyHero: function(classType) {
         var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, 'goomba');
+        comb.scale.setTo(0.1, 0.1);
+        game.physics.arcade.enable(comb);
         comb.classType = classType;
         comb.team = 0;
         comb.hp = 10;
-        comb.scale.setTo(0.1, 0.1);
-        game.physics.arcade.enable(comb);
         comb.body.bounce.y = 0.2;
         comb.body.bounce.x = 1.5;
         comb.body.gravity.y = 500;
