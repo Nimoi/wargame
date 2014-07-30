@@ -18,7 +18,8 @@ var app = {
         // Preload our assets
         game.load.image('sky', 'img/sky.png');
         game.load.image('ground', 'img/platform.png');
-        game.load.image('goomba', 'img/goomba.png');
+        game.load.image('fighter', 'img/125.jpeg');
+        game.load.image('enemy', 'img/125b.jpeg');
         game.load.image('base', 'img/base.gif');
     },
     create: function() {
@@ -51,7 +52,7 @@ var app = {
         // Create Bases
         this.bases = game.add.group();
         this.bases.enableBody = true;
-        
+
         var playerbase = this.bases.create(32, game.world.height - 214, 'base');
         playerbase.tint = 0x348899;
         playerbase.body.immovable = true;
@@ -142,7 +143,7 @@ var app = {
         comb.body.gravity.y = 500;
         comb.body.collideWorldBounds = true;
         comb.body.velocity.x = 100;
-        comb.tint = 0x348899;
+        // comb.tint = 0x348899;
     },
     addEnemyHero: function(classType) {
         var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, 'goomba');
@@ -159,7 +160,7 @@ var app = {
         comb.body.gravity.y = 500;
         comb.body.collideWorldBounds = true;
         comb.body.velocity.x = -100;
-        comb.tint = 0x962D3E;
+        // comb.tint = 0x962D3E;
     },
     damage: function(pHero, eHero) {
         pHero.hp -= 1;
@@ -201,8 +202,11 @@ function create() {
 function update() {
     app.update();
 }
+<<<<<<< Updated upstream
 
 function autoSpawn() {
     app.addEnemyHero();
     window.setTimeout(autoSpawn, 2000);
 }
+=======
+>>>>>>> Stashed changes
