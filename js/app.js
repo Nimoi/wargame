@@ -18,8 +18,11 @@ var app = {
         // Preload our assets
         game.load.image('sky', 'img/sky.png');
         game.load.image('ground', 'img/platform.png');
-        game.load.image('fighter', 'img/125.jpeg');
-        game.load.image('enemy', 'img/125b.jpeg');
+        game.load.image('miner', 'img/125c.jpg');
+        game.load.image('fighter', 'img/125b.jpeg');
+        game.load.image('archer', 'img/125.jpeg');
+        game.load.image('thief', 'img/125a.jpeg');
+        game.load.image('enemyFighter', 'img/goomba.png');
         game.load.image('base', 'img/base.gif');
     },
     create: function() {
@@ -29,6 +32,12 @@ var app = {
         }, false);
         document.getElementById('spawnFighter').addEventListener('click', function() {
             app.addPlayerHero('fighter');
+        }, false);
+        document.getElementById('spawnArcher').addEventListener('click', function() {
+            app.addPlayerHero('archer');
+        }, false);
+        document.getElementById('spawnThief').addEventListener('click', function() {
+            app.addPlayerHero('thief');
         }, false);
 
         // Map boundaries
@@ -126,14 +135,14 @@ var app = {
         }
     },
     addPlayerHero: function(classType) {
-        var comb = app.pHeroes.create(32, game.world.height - 214, 'fighter');
+        var comb = app.pHeroes.create(32, game.world.height - 214, classType);
         // Scale and enable physics
         // comb.scale.setTo(0.1,0.1);
         game.physics.arcade.enable(comb);
         // Class stats
         comb.classType = classType;
+        comb.heroStats = app.getHeroStats(classType);
         comb.team = 1;
-        comb.hp = 10;
         // Flip sprite
         comb.anchor.setTo(.5,.5);
         // comb.scale.x *= -1;
@@ -146,14 +155,14 @@ var app = {
         // comb.tint = 0x348899;
     },
     addEnemyHero: function(classType) {
-        var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, 'enemy');
+        var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, classType);
         // Scale and enable physics
-        comb.scale.setTo(0.1, 0.1);
+        // comb.scale.setTo(0.1, 0.1);
         game.physics.arcade.enable(comb);
         // Class stats
         comb.classType = classType;
+        comb.heroStats = app.getHeroStats(classType);
         comb.team = 0;
-        comb.hp = 10;
         // Body physics
         comb.body.bounce.y = 0.2;
         comb.body.bounce.x = 1.5;
@@ -163,11 +172,11 @@ var app = {
         // comb.tint = 0x962D3E;
     },
     damage: function(pHero, eHero) {
-        pHero.hp -= 1;
-        eHero.hp -= 1;
+        pHero.heroStats.health -= eHero.heroStats.damage;
+        eHero.heroStats.health -= pHero.heroStats.damage;
 
-        var pDamText = game.add.text(pHero.body.position.x, pHero.body.position.y, '-1', { fontSize: '12px', fill: '#E74C3C' });
-        var eDamText = game.add.text(eHero.body.position.x, eHero.body.position.y, '-1', { fontSize: '12px', fill: '#E74C3C' });
+        var pDamText = game.add.text(pHero.body.position.x, pHero.body.position.y, '-'+ eHero.heroStats.damage, { fontSize: '12px', fill: '#E74C3C' });
+        var eDamText = game.add.text(eHero.body.position.x, eHero.body.position.y, '-'+ pHero.heroStats.damage, { fontSize: '12px', fill: '#E74C3C' });
         app.hitText.add(pDamText);
         app.hitText.add(eDamText);
 
@@ -176,7 +185,7 @@ var app = {
     },
     killCheck: function(item) {
         if(!item.dieAt) {
-            if(item.hp <= 0) {
+            if(item.heroStats.health <= 0) {
                 item.body.velocity.x *= 3;
                 item.body.velocity.y = -100;
                 item.body.collideWorldBounds = false;
@@ -187,6 +196,50 @@ var app = {
                 item.body.checkCollision.left = false;
                 item.body.checkCollision.right = false;
             }
+        }
+    },
+    getHeroStats: function(classType) {
+        switch(classType) {
+            case 'miner':
+                return {
+                    'health': 10,
+                    'mitigation': 1,
+                    'damage': 2,
+                    'range': 1,
+                    'cost': 10,
+                    'speed': 2
+                }
+            break;
+            case 'fighter':
+                return {
+                    'health': 30,
+                    'mitigation': 4,
+                    'damage': 2,
+                    'range': 1,
+                    'cost': 20,
+                    'speed': 2
+                }
+            break;
+            case 'archer':
+                return {
+                    'health': 20,
+                    'mitigation': 2,
+                    'damage': 4,
+                    'range': 10,
+                    'cost': 30,
+                    'speed': 1
+                }
+            break;
+            case 'thief':
+                return {
+                    'health': 5,
+                    'mitigation': 0,
+                    'damage': 6,
+                    'range': 0,
+                    'cost': 40,
+                    'speed': 3
+                }
+            break;
         }
     }
 }
@@ -204,6 +257,8 @@ function update() {
 }
 
 function autoSpawn() {
-    app.addEnemyHero();
+    var classArray = ['miner', 'fighter', 'archer', 'thief'],
+        rand = classArray[Math.floor(Math.random() * classArray.length)];
+    app.addEnemyHero(rand);
     window.setTimeout(autoSpawn, 2000);
 }
