@@ -202,9 +202,8 @@ var app = {
         switch(classType) {
             case 'miner':
                 return {
-                    'health': 10,
-                    'mitigation': 1,
-                    'damage': 2,
+                    'health': 5,
+                    'damage': 0,
                     'range': 1,
                     'cost': 10,
                     'speed': 2
@@ -212,9 +211,8 @@ var app = {
             break;
             case 'fighter':
                 return {
-                    'health': 30,
-                    'mitigation': 4,
-                    'damage': 2,
+                    'health': 60,
+                    'damage': 5,
                     'range': 1,
                     'cost': 20,
                     'speed': 2
@@ -222,9 +220,8 @@ var app = {
             break;
             case 'archer':
                 return {
-                    'health': 20,
-                    'mitigation': 2,
-                    'damage': 4,
+                    'health': 30,
+                    'damage': 20,
                     'range': 10,
                     'cost': 30,
                     'speed': 1
@@ -232,9 +229,8 @@ var app = {
             break;
             case 'thief':
                 return {
-                    'health': 5,
-                    'mitigation': 0,
-                    'damage': 6,
+                    'health': 15,
+                    'damage': 15,
                     'range': 0,
                     'cost': 40,
                     'speed': 3
@@ -257,8 +253,25 @@ function update() {
 }
 
 function autoSpawn() {
-    var classArray = ['miner', 'fighter', 'archer', 'thief'],
-        rand = classArray[Math.floor(Math.random() * classArray.length)];
-    app.addEnemyHero(rand);
-    window.setTimeout(autoSpawn, 2000);
+    var classArray = [
+        {
+            'class': 'miner',
+            'time': 3000
+        },
+        {
+            'class': 'fighter',
+            'time': 3500
+        },
+        {
+            'class': 'archer',
+            'time': 5000
+        },
+        {
+            'class': 'thief',
+            'time': 7000
+        }
+    ],
+    rand = classArray[Math.floor(Math.random() * classArray.length)];
+    app.addEnemyHero(rand.class);
+    window.setTimeout(autoSpawn, rand.time);
 }
