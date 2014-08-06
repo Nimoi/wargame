@@ -11,6 +11,7 @@ var app = {
     eHeroes: undefined, // Enemy heroes
     bases: undefined,
     hitText: undefined,
+    projectiles: undefined,
     /*
      * Init
      */
@@ -24,6 +25,7 @@ var app = {
         game.load.image('thief', 'img/125a.jpeg');
         game.load.image('enemyFighter', 'img/goomba.png');
         game.load.image('base', 'img/base.gif');
+        game.load.image('bullet', 'img/bullet.png');
     },
     create: function() {
         // Event listeners
@@ -54,7 +56,7 @@ var app = {
         this.platforms.enableBody = true; // Enables physics body
         // Set the ground
         var ground = this.platforms.create(0, game.world.height - 64, 'ground');
-        ground.alpha = 0.75;
+        ground.alpha = 1;
         ground.scale.setTo(32, 32);
         ground.body.immovable = true;
 
@@ -74,8 +76,17 @@ var app = {
         this.pHeroes = game.add.group();
         this.eHeroes = game.add.group();
 
+        // this.pHeroes.checkWorldBounds = true;
+        // this.pHeroes.setAll('outOfBoundsKill', true);
+        // this.eHeroes.checkWorldBounds = true;
+        // this.eHeroes.setAll('outOfBoundsKill', true);
+
         // Floating Damage Text
         this.hitText = game.add.group();
+
+        // Projectiles
+        this.projectiles = game.add.group();
+        this.projectiles.enableBody = true;
 
         // Controls
         this.cursors = game.input.keyboard.createCursorKeys();
@@ -99,18 +110,16 @@ var app = {
         game.physics.arcade.collide(app.eHeroes, app.bases);
         game.physics.arcade.collide(app.pHeroes, app.eHeroes, this.damage);
 
-        app.pHeroes.forEach(function(item) {
-            if(item.body.velocity.x < 100) {
-                item.body.velocity.x += 10;
-            }
-            app.updateHero(item);
+        app.pHeroes.forEach(function(hero) {
+            app.updateHero(hero);
         });
 
-        app.eHeroes.forEach(function(item) {
-            if(item.body.velocity.x > -100) {
-                item.body.velocity.x -= 10;
-            }
-            app.updateHero(item);
+        app.eHeroes.forEach(function(hero) {
+            app.updateHero(hero);
+        });
+
+        app.projectiles.forEach(function(proj) {
+            this.game.physics.arcade.moveToObject(proj, proj.target, 500);
         });
 
         app.hitText.forEach(function(item) {
@@ -145,6 +154,8 @@ var app = {
         comb.classType = classType;
         comb.heroStats = app.getHeroStats(classType);
         comb.team = 1;
+        comb.mobile = 1;
+        comb.target = 0;
         // Flip sprite
         comb.anchor.setTo(.5,.5);
         // comb.scale.x *= -1;
@@ -165,6 +176,8 @@ var app = {
         comb.classType = classType;
         comb.heroStats = app.getHeroStats(classType);
         comb.team = 0;
+        comb.mobile = 1;
+        comb.target = 0;
         // Body physics
         comb.body.bounce.y = 0.2;
         comb.body.bounce.x = 1.5;
@@ -204,7 +217,13 @@ var app = {
                 item.body.checkCollision.down = false;
                 item.body.checkCollision.left = false;
                 item.body.checkCollision.right = false;
+                item.alive = false;
             }
+        }
+    },
+    removeEntity: function(item) {
+        if(item.position.y > 800) {
+            item.remove();
         }
     },
     getHeroStats: function(classType) {
@@ -231,9 +250,11 @@ var app = {
                 return {
                     'health': 30,
                     'damage': 20,
-                    'range': 10,
+                    'range': 400,
                     'cost': 30,
-                    'speed': 1
+                    'speed': 1,
+                    'fireRate': 1000,
+                    'canFire': 0
                 }
             break;
             case 'thief':
@@ -250,6 +271,22 @@ var app = {
     },
     updateHero: function(hero) {
         switch(hero.classType) {
+            case 'archer':
+                // Look for a target
+                if(!hero.target) {
+                    this.getTargetFromRange(hero);
+                    break;
+                }
+                if(!hero.target.alive) {
+                    hero.target = 0;
+                }
+                // shoots at target
+                if(game.time.time >= hero.heroStats.canFire) {
+                    this.fireAtTarget(hero);
+                }
+
+                // moves forward and looks for a new target
+            break;
             case 'thief':
                 if(hero.heroStats.stealth) {
                     hero.alpha = 0.6;
@@ -258,6 +295,55 @@ var app = {
                 }
             break;
         }
+
+        if(hero.mobile) {
+            // Move that hero!
+            if(hero.team) {
+                if(hero.body.velocity.x < 100) {
+                    hero.body.velocity.x += 10;
+                }
+            } else {
+                if(hero.body.velocity.x > -100) {
+                    hero.body.velocity.x -= 10;
+                }
+            }
+        }
+    },
+    getTargetFromRange: function(hero) {
+        var targetTeam = 0,
+        targetGroup,
+        distance = hero.heroStats.range,
+        newTarget = 0;
+        if(!hero.team) {
+            targetTeam = 1;
+            targetGroup = app.pHeroes;
+        } else {
+            targetGroup = app.eHeroes;
+        }
+        targetGroup.forEach(function(target) {
+            var newDistance = game.physics.arcade.distanceBetween(hero, target);
+            if(newDistance < distance) {
+                distance = newDistance;
+                newTarget = target;
+            }
+        });
+        if(newTarget) {
+            hero.mobile = 0;
+            hero.body.velocity.x = 0;
+            hero.target = newTarget;
+        }
+    },
+    fireAtTarget: function(hero) {
+        var proj = app.projectiles.create(hero.position.x, hero.position.y, 'bullet');
+        proj.target = hero.target;
+        proj.scale.setTo(0.1, 0.1);
+        if(hero.team) {
+            // proj.anchor.setTo(.5,.5);
+            proj.scale.x *= -1;
+        }
+        game.physics.arcade.enable(proj);
+        // Delay next firing
+        hero.heroStats.canFire = game.time.time + hero.heroStats.fireRate;
     }
 }
 
