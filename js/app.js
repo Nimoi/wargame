@@ -12,6 +12,8 @@ var app = {
     bases: undefined,
     hitText: undefined,
     projectiles: undefined,
+    pProj: undefined,
+    eProj: undefined,
     /*
      * Init
      */
@@ -88,6 +90,15 @@ var app = {
         this.projectiles = game.add.group();
         this.projectiles.enableBody = true;
 
+        this.pProj = game.add.group();
+        this.pProj.enableBody = true;
+
+        this.eProj = game.add.group();
+        this.eProj.enableBody = true;
+
+        this.projectiles.add(this.pProj);
+        this.projectiles.add(this.eProj);
+
         // Controls
         this.cursors = game.input.keyboard.createCursorKeys();
 
@@ -108,8 +119,11 @@ var app = {
         game.physics.arcade.collide(app.eHeroes, app.platforms);
         game.physics.arcade.collide(app.pHeroes, app.bases);
         game.physics.arcade.collide(app.eHeroes, app.bases);
-        game.physics.arcade.collide(app.pHeroes, app.eHeroes, this.damage);
+        game.physics.arcade.collide(app.pHeroes, app.eHeroes, this.damageMelee);
+        game.physics.arcade.collide(app.pProj, app.eHeroes, this.damageRange);
+        game.physics.arcade.collide(app.eProj, app.pHeroes, this.damageRange);
 
+        // We need to combine these into parent groups!? Always causes me errors
         app.pHeroes.forEach(function(hero) {
             app.updateHero(hero);
         });
@@ -118,8 +132,17 @@ var app = {
             app.updateHero(hero);
         });
 
-        app.projectiles.forEach(function(proj) {
+        app.pProj.forEach(function(proj) {
             this.game.physics.arcade.moveToObject(proj, proj.target, 500);
+            if(!proj.target.alive) {
+                proj.destroy();
+            }
+        });
+        app.eProj.forEach(function(proj) {
+            this.game.physics.arcade.moveToObject(proj, proj.target, 500);
+            if(!proj.target.alive) {
+                proj.destroy();
+            }
         });
 
         app.hitText.forEach(function(item) {
@@ -186,7 +209,7 @@ var app = {
         comb.body.velocity.x = -100;
         // comb.tint = 0x962D3E;
     },
-    damage: function(pHero, eHero) {
+    damageMelee: function(pHero, eHero) {
         pHero.heroStats.health -= eHero.heroStats.damage;
         eHero.heroStats.health -= pHero.heroStats.damage;
 
@@ -203,6 +226,19 @@ var app = {
         }
         if(eHero.classType == 'thief') {
             eHero.heroStats.stealth = 0;
+        }
+    },
+    damageRange: function(proj, hero) {
+        // Dmg the hero
+        hero.heroStats.health -= proj.damage;
+        var damText = game.add.text(hero.body.position.x, hero.body.position.y, '-'+ proj.damage, { fontSize: '12px', fill: '#E74C3C' });
+        app.hitText.add(damText);
+        // Remove the projectile
+        // proj.destroy();
+        if(hero.team) {
+            app.eProj.remove(proj);
+        } else {
+            app.pProj.remove(proj);
         }
     },
     killCheck: function(item) {
@@ -346,8 +382,13 @@ var app = {
         }
     },
     fireAtTarget: function(hero) {
-        var proj = app.projectiles.create(hero.position.x, hero.position.y, 'bullet');
+        var projGroup = app.pProj;
+        if(!hero.team) {
+            projGroup = app.eProj;
+        }
+        var proj = projGroup.create(hero.position.x, hero.position.y, 'bullet');
         proj.target = hero.target;
+        proj.damage = hero.heroStats.damage;
         proj.scale.setTo(0.1, 0.1);
         if(hero.team) {
             // proj.anchor.setTo(.5,.5);
