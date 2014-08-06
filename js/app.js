@@ -133,12 +133,18 @@ var app = {
         });
 
         app.pProj.forEach(function(proj) {
+            if(!proj) {
+                return;
+            }
             this.game.physics.arcade.moveToObject(proj, proj.target, 500);
             if(!proj.target.alive) {
                 proj.destroy();
             }
         });
         app.eProj.forEach(function(proj) {
+            if(!proj) {
+                return;
+            }
             this.game.physics.arcade.moveToObject(proj, proj.target, 500);
             if(!proj.target.alive) {
                 proj.destroy();
