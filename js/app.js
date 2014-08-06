@@ -221,9 +221,10 @@ var app = {
             }
         }
     },
-    removeEntity: function(item) {
-        if(item.position.y > 800) {
-            item.remove();
+    removeEntity: function(unit) {
+        if(unit.position.y > 800) {
+            console.log('REMOVING UNIT!');
+            unit.destroy();
         }
     },
     getHeroStats: function(classType) {
@@ -270,6 +271,9 @@ var app = {
         }
     },
     updateHero: function(hero) {
+        if(hero == undefined) {
+            return;
+        }
         switch(hero.classType) {
             case 'archer':
                 // Look for a target
@@ -277,15 +281,15 @@ var app = {
                     this.getTargetFromRange(hero);
                     break;
                 }
+                // moves forward and looks for a new target
                 if(!hero.target.alive) {
+                    hero.mobile = 1;
                     hero.target = 0;
                 }
                 // shoots at target
                 if(game.time.time >= hero.heroStats.canFire) {
                     this.fireAtTarget(hero);
                 }
-
-                // moves forward and looks for a new target
             break;
             case 'thief':
                 if(hero.heroStats.stealth) {
@@ -293,6 +297,8 @@ var app = {
                 } else {
                     hero.alpha = 1;
                 }
+            break;
+            default:
             break;
         }
 
@@ -308,6 +314,9 @@ var app = {
                 }
             }
         }
+        if(!hero.alive) {
+            this.removeEntity(hero);
+        }
     },
     getTargetFromRange: function(hero) {
         var targetTeam = 0,
@@ -321,6 +330,9 @@ var app = {
             targetGroup = app.eHeroes;
         }
         targetGroup.forEach(function(target) {
+            if(target.heroStats.stealth) {
+                return;
+            }
             var newDistance = game.physics.arcade.distanceBetween(hero, target);
             if(newDistance < distance) {
                 distance = newDistance;
