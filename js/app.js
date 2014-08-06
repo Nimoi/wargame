@@ -103,12 +103,14 @@ var app = {
             if(item.body.velocity.x < 100) {
                 item.body.velocity.x += 10;
             }
+            app.updateHero(item);
         });
 
         app.eHeroes.forEach(function(item) {
             if(item.body.velocity.x > -100) {
                 item.body.velocity.x -= 10;
             }
+            app.updateHero(item);
         });
 
         app.hitText.forEach(function(item) {
@@ -123,15 +125,15 @@ var app = {
         });
 
         if (app.cursors.up.isDown) {
-            game.camera.y -= 4;
+            game.camera.y -= 8;
         } else if (app.cursors.down.isDown) {
-            game.camera.y += 4;
+            game.camera.y += 8;
         }
 
         if (app.cursors.left.isDown) {
-            game.camera.x -= 4;
+            game.camera.x -= 8;
         } else if (app.cursors.right.isDown) {
-            game.camera.x += 4;
+            game.camera.x += 8;
         }
     },
     addPlayerHero: function(classType) {
@@ -182,6 +184,13 @@ var app = {
 
         app.killCheck(pHero);
         app.killCheck(eHero);
+
+        if(pHero.classType == 'thief') {
+            pHero.heroStats.stealth = 0;
+        }
+        if(eHero.classType == 'thief') {
+            eHero.heroStats.stealth = 0;
+        }
     },
     killCheck: function(item) {
         if(!item.dieAt) {
@@ -233,7 +242,19 @@ var app = {
                     'damage': 15,
                     'range': 0,
                     'cost': 40,
-                    'speed': 3
+                    'speed': 3,
+                    'stealth': 1
+                }
+            break;
+        }
+    },
+    updateHero: function(hero) {
+        switch(hero.classType) {
+            case 'thief':
+                if(hero.heroStats.stealth) {
+                    hero.alpha = 0.6;
+                } else {
+                    hero.alpha = 1;
                 }
             break;
         }
