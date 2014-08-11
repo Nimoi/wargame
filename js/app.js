@@ -66,13 +66,15 @@ var app = {
         this.bases = game.add.group();
         this.bases.enableBody = true;
 
-        var playerbase = this.bases.create(32, game.world.height - 214, 'base');
-        playerbase.tint = 0x348899;
-        playerbase.body.immovable = true;
+        this.playerBase = this.bases.create(32, game.world.height - 214, 'base');
+        this.playerBase.tint = 0x348899;
+        this.playerBase.body.immovable = true;
+        this.playerBase.baseHealth = 1000;
 
-        var enemybase = this.bases.create(game.world.width - 232, game.world.height - 214, 'base');
-        enemybase.tint = 0x962D3E;
-        enemybase.body.immovable = true;
+        this.enemyBase = this.bases.create(game.world.width - 232, game.world.height - 214, 'base');
+        this.enemyBase.tint = 0x962D3E;
+        this.enemyBase.body.immovable = true;
+        this.enemyBase.baseHealth = 1000;
 
         // Combatants
         this.pHeroes = game.add.group();
@@ -117,8 +119,8 @@ var app = {
         // Collisions
         game.physics.arcade.collide(app.pHeroes, app.platforms);
         game.physics.arcade.collide(app.eHeroes, app.platforms);
-        game.physics.arcade.collide(app.pHeroes, app.bases);
-        game.physics.arcade.collide(app.eHeroes, app.bases);
+        game.physics.arcade.collide(app.pHeroes, app.bases, this.damageEnemyBase);
+        game.physics.arcade.collide(app.eHeroes, app.bases, this.damagePlayerBase);
         game.physics.arcade.collide(app.pHeroes, app.eHeroes, this.damageMelee);
         game.physics.arcade.collide(app.pProj, app.eHeroes, this.damageRange);
         game.physics.arcade.collide(app.eProj, app.pHeroes, this.damageRange);
@@ -245,6 +247,20 @@ var app = {
             app.eProj.remove(proj);
         } else {
             app.pProj.remove(proj);
+        }
+    },
+    damagePlayerBase: function(eHero) {
+        app.playerBase.baseHealth -= eHero.heroStats.damage;
+
+        if (app.playerBase.baseHealth <= 0) {
+            app.playerBase.destroy();
+        }
+    },
+    damageEnemyBase: function(pHero) {
+        app.enemyBase.baseHealth -= pHero.heroStats.damage;
+
+        if (app.enemyBase.baseHealth <= 0) {
+            app.enemyBase.destroy();
         }
     },
     killCheck: function(item) {
