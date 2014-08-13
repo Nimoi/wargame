@@ -138,7 +138,9 @@ var app = {
             if(!proj) {
                 return;
             }
-            this.game.physics.arcade.moveToObject(proj, proj.target, 500);
+            if(proj.heroStats.health) {
+                this.game.physics.arcade.moveToObject(proj, proj.target, 500);
+            }
             if(!proj.target.alive) {
                 proj.destroy();
             }
@@ -147,7 +149,9 @@ var app = {
             if(!proj) {
                 return;
             }
-            this.game.physics.arcade.moveToObject(proj, proj.target, 500);
+            if(proj.heroStats.health) {
+                this.game.physics.arcade.moveToObject(proj, proj.target, 500);
+            }
             if(!proj.target.alive) {
                 proj.destroy();
             }
@@ -237,6 +241,8 @@ var app = {
         }
     },
     damageRange: function(proj, hero) {
+        // Remove hero velocity (stun)
+        hero.body.velocity.x = 0;
         // Dmg the hero
         hero.heroStats.health -= proj.damage;
         var damText = game.add.text(hero.body.position.x, hero.body.position.y, '-'+ proj.damage, { fontSize: '12px', fill: '#E74C3C' });
@@ -244,10 +250,13 @@ var app = {
         // Remove the projectile
         // proj.destroy();
         if(hero.team) {
-            app.eProj.remove(proj);
+            // app.eProj.remove(proj);
         } else {
-            app.pProj.remove(proj);
+            // app.pProj.remove(proj);
         }
+        proj.heroStats.health = 0;
+        app.killCheck(hero);
+        app.killCheck(proj);
     },
     damagePlayerBase: function(eHero) {
         app.playerBase.baseHealth -= eHero.heroStats.damage;
@@ -266,8 +275,8 @@ var app = {
     killCheck: function(item) {
         if(!item.dieAt) {
             if(item.heroStats.health <= 0) {
-                item.body.velocity.x *= 3;
-                item.body.velocity.y = -100;
+                item.body.velocity.x = 0;
+                item.body.velocity.y = 400;
                 item.body.collideWorldBounds = false;
                 item.body.angularVelocity = game.rnd.integerInRange(100, 200);
                 item.body.angularDrag = game.rnd.integerInRange(0, 100);
@@ -411,6 +420,10 @@ var app = {
         var proj = projGroup.create(hero.position.x, hero.position.y, 'bullet');
         proj.target = hero.target;
         proj.damage = hero.heroStats.damage;
+        proj.body.bounce.x = 0;
+        proj.heroStats = {
+            health: 1
+        };
         proj.scale.setTo(0.1, 0.1);
         if(hero.team) {
             // proj.anchor.setTo(.5,.5);
