@@ -124,6 +124,8 @@ var app = {
         game.physics.arcade.collide(app.pHeroes, app.eHeroes, this.damageMelee);
         game.physics.arcade.collide(app.pProj, app.eHeroes, this.damageRange);
         game.physics.arcade.collide(app.eProj, app.pHeroes, this.damageRange);
+        game.physics.arcade.collide(app.pProj, app.bases, this.damageRangeBase);
+        game.physics.arcade.collide(app.eProj, app.bases, this.damageRangeBase);
 
         // We need to combine these into parent groups!? Always causes me errors
         app.pHeroes.forEach(function(hero) {
@@ -161,8 +163,8 @@ var app = {
             if(!item) {
                 return;
             }
-            item.alpha -= 0.05;
-            item.position.y -= 6;
+            item.alpha -= 0.02;
+            item.position.y -= 2;
             if(item.alpha <= 0) {
                 item.destroy();
             }
@@ -258,6 +260,18 @@ var app = {
         proj.heroStats.health = 0;
         app.killCheck(proj);
     },
+    damageRangeBase: function(proj, base) {
+        // Dmg the base
+        base.baseHealth -= proj.damage;
+        var damText = game.add.text(base.body.position.x, base.body.position.y, '-'+ proj.damage, { fontSize: '12px', fill: '#E74C3C' });
+        app.hitText.add(damText);
+        // app.killCheck(hero);
+        if (base.baseHealth <= 0) {
+            base.destroy();
+        }
+        proj.heroStats.health = 0;
+        app.killCheck(proj);
+    },
     damagePlayerBase: function(eHero) {
         app.playerBase.baseHealth -= eHero.heroStats.damage;
 
@@ -338,7 +352,7 @@ var app = {
         }
     },
     updateHero: function(hero) {
-        if(hero == undefined) {
+        if(hero == undefined || hero.heroStats.health <= 0) {
             return;
         }
         switch(hero.classType) {
@@ -388,24 +402,35 @@ var app = {
     getTargetFromRange: function(hero) {
         var targetTeam = 0,
         targetGroup,
+        targetBase,
+        baseDistance,
         distance = hero.heroStats.range,
         newTarget = 0;
         if(!hero.team) {
             targetTeam = 1;
             targetGroup = app.pHeroes;
+            targetBase = app.playerBase;
         } else {
             targetGroup = app.eHeroes;
+            targetBase = app.enemyBase;
         }
-        targetGroup.forEach(function(target) {
-            if(target.heroStats.stealth) {
-                return;
-            }
-            var newDistance = game.physics.arcade.distanceBetween(hero, target);
-            if(newDistance < distance) {
-                distance = newDistance;
-                newTarget = target;
-            }
-        });
+        // Base in range
+        baseDistance = game.physics.arcade.distanceBetween(hero, targetBase);
+        if(baseDistance <= distance) {
+            newTarget = targetBase;
+        } else {
+            // Hero in range
+            targetGroup.forEach(function(target) {
+                if(target.heroStats.stealth) {
+                    return;
+                }
+                var newDistance = game.physics.arcade.distanceBetween(hero, target);
+                if(newDistance < distance) {
+                    distance = newDistance;
+                    newTarget = target;
+                }
+            });
+        }
         if(newTarget) {
             hero.mobile = 0;
             hero.body.velocity.x = 0;
@@ -419,6 +444,7 @@ var app = {
         }
         var proj = projGroup.create(hero.position.x, hero.position.y, 'bullet');
         proj.target = hero.target;
+        proj.team = hero.team;
         proj.damage = hero.heroStats.damage;
         proj.body.bounce.x = 0;
         proj.heroStats = {
