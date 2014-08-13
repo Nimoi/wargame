@@ -254,8 +254,8 @@ var app = {
         } else {
             // app.pProj.remove(proj);
         }
-        proj.heroStats.health = 0;
         app.killCheck(hero);
+        proj.heroStats.health = 0;
         app.killCheck(proj);
     },
     damagePlayerBase: function(eHero) {
