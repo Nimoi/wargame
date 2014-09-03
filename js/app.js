@@ -453,9 +453,11 @@ var app = {
                     } else {
                         // Deposit resources and return to mine
                         hero.mobile = 1;
-                        app.resources.copper += hero.heroStats.collected;
-                        app.resourceText.text = 'copper: '+app.resources.copper;
-                        hero.heroStats.collected = 0;
+                        if(hero.team) {
+                            app.resources.copper += hero.heroStats.collected;
+                            app.resourceText.text = 'copper: '+app.resources.copper;
+                            hero.heroStats.collected = 0;
+                        }
                     }
                 }
             break;
