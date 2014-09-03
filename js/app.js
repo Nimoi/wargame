@@ -452,7 +452,7 @@ var app = {
         };
         proj.scale.setTo(0.1, 0.1);
         if(hero.team) {
-            // proj.anchor.setTo(.5,.5);
+            proj.anchor.setTo(.5,.5);
             proj.scale.x *= -1;
         }
         game.physics.arcade.enable(proj);
