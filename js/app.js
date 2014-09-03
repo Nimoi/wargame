@@ -10,10 +10,13 @@ var app = {
     pHeroes: undefined, // Player heroes
     eHeroes: undefined, // Enemy heroes
     bases: undefined,
+    mines: undefined,
+    miners: undefined,
     hitText: undefined,
     projectiles: undefined,
     pProj: undefined,
     eProj: undefined,
+    resourceText: undefined,
     /*
      * Init
      */
@@ -27,6 +30,7 @@ var app = {
         game.load.image('thief', 'img/125a.jpeg');
         game.load.image('enemyFighter', 'img/goomba.png');
         game.load.image('base', 'img/base.gif');
+        game.load.image('mine', 'img/mine.gif');
         game.load.image('bullet', 'img/bullet.png');
     },
     create: function() {
@@ -76,9 +80,29 @@ var app = {
         this.enemyBase.body.immovable = true;
         this.enemyBase.baseHealth = 1000;
 
+        // Mines
+        this.mines = game.add.group();
+        this.mines.enableBody = true;
+
+        this.playerMine = this.mines.create(364, game.world.height - 164, 'mine');
+        this.playerMine.tint = 0x348899;
+        this.playerMine.body.immovable = true;
+        this.playerMine.baseHealth = 500;
+
+        this.enemyMine = this.mines.create(game.world.width - 464, game.world.height - 164, 'mine');
+        this.enemyMine.tint = 0x962D3E;
+        this.enemyMine.body.immovable = true;
+        this.enemyMine.baseHealth = 500;
+
         // Combatants
         this.pHeroes = game.add.group();
         this.eHeroes = game.add.group();
+
+        // Miners
+        this.miners = game.add.group();
+
+        // Resources
+        this.resourceText = game.add.text(16, 16, 'copper: 0', { fontSize: '16px', fill: '#fff' });
 
         // this.pHeroes.checkWorldBounds = true;
         // this.pHeroes.setAll('outOfBoundsKill', true);
@@ -183,6 +207,9 @@ var app = {
         }
     },
     state: 'play',
+    resources: {
+        copper: 0
+    },
     addPlayerHero: function(classType) {
         var comb = app.pHeroes.create(32, game.world.height - 214, classType);
         // Scale and enable physics
@@ -317,7 +344,10 @@ var app = {
                     'damage': 0,
                     'range': 1,
                     'cost': 10,
-                    'speed': 2
+                    'speed': 1,
+                    'collectRate': 1000,
+                    'canCollect': 0,
+                    'collected': 0
                 }
             break;
             case 'fighter':
@@ -378,6 +408,55 @@ var app = {
                     hero.alpha = 0.6;
                 } else {
                     hero.alpha = 1;
+                }
+            break;
+            case 'miner':
+                // Travel to node
+                var targetMine = app.enemyMine,
+                targetBase = app.enemyBase,
+                distance;
+                if(hero.team) {
+                    targetMine = app.playerMine;
+                    targetBase = app.playerBase;
+                }
+                distance = game.physics.arcade.distanceBetween(hero, targetMine);
+                if(distance <= 40 && hero.heroStats.collected < 10) {
+                    hero.mobile = 0;
+                    hero.collecting = 1;
+                    hero.body.velocity.x = 0;
+                    // Collect from node
+                    if(game.time.time >= hero.heroStats.canCollect) {
+                        hero.heroStats.collected += 1;
+                        hero.heroStats.canCollect = game.time.time + hero.heroStats.collectRate;
+                        if(hero.team) {
+                            var text = game.add.text(hero.body.position.x, hero.body.position.y, '+1', { fontSize: '12px', fill: '#8FCC00', stroke: '#141414', strokeThickness: 2 });
+                            app.hitText.add(text);
+                        }
+                    }
+                }
+                // Return to base
+                if(hero.heroStats.collected >= 10) {
+                    hero.collecting = 0;
+                    distance = game.physics.arcade.distanceBetween(hero, targetBase);
+                    console.log(distance);
+                    if(distance > 290) {
+                        // Travel in base direction
+                        if(hero.team) {
+                            if(hero.body.velocity.x > -100) {
+                                hero.body.velocity.x -= 10;
+                            }
+                        } else {
+                            if(hero.body.velocity.x < 100) {
+                                hero.body.velocity.x += 10;
+                            }
+                        }
+                    } else {
+                        // Deposit resources and return to mine
+                        hero.mobile = 1;
+                        app.resources.copper += hero.heroStats.collected;
+                        app.resourceText.text = 'copper: '+app.resources.copper;
+                        hero.heroStats.collected = 0;
+                    }
                 }
             break;
             default:
