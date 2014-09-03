@@ -119,13 +119,13 @@ var app = {
         // Collisions
         game.physics.arcade.collide(app.pHeroes, app.platforms);
         game.physics.arcade.collide(app.eHeroes, app.platforms);
-        game.physics.arcade.collide(app.pHeroes, app.bases, this.damageEnemyBase);
-        game.physics.arcade.collide(app.eHeroes, app.bases, this.damagePlayerBase);
+        game.physics.arcade.collide(app.pHeroes, app.bases, this.damageBase);
+        game.physics.arcade.collide(app.eHeroes, app.bases, this.damageBase);
         game.physics.arcade.collide(app.pHeroes, app.eHeroes, this.damageMelee);
         game.physics.arcade.collide(app.pProj, app.eHeroes, this.damageRange);
         game.physics.arcade.collide(app.eProj, app.pHeroes, this.damageRange);
-        game.physics.arcade.collide(app.pProj, app.bases, this.damageRangeBase);
-        game.physics.arcade.collide(app.eProj, app.bases, this.damageRangeBase);
+        game.physics.arcade.collide(app.pProj, app.bases, this.damageBase);
+        game.physics.arcade.collide(app.eProj, app.bases, this.damageBase);
 
         // We need to combine these into parent groups!? Always causes me errors
         app.pHeroes.forEach(function(hero) {
@@ -182,6 +182,7 @@ var app = {
             game.camera.x += 8;
         }
     },
+    state: 'play',
     addPlayerHero: function(classType) {
         var comb = app.pHeroes.create(32, game.world.height - 214, classType);
         // Scale and enable physics
@@ -246,8 +247,8 @@ var app = {
         // Remove hero velocity (stun)
         hero.body.velocity.x = 0;
         // Dmg the hero
-        hero.heroStats.health -= proj.damage;
-        var damText = game.add.text(hero.body.position.x, hero.body.position.y, '-'+ proj.damage, { fontSize: '12px', fill: '#E74C3C' });
+        hero.heroStats.health -= proj.dmg;
+        var damText = game.add.text(hero.body.position.x, hero.body.position.y, '-'+ proj.dmg, { fontSize: '12px', fill: '#E74C3C' });
         app.hitText.add(damText);
         // Remove the projectile
         // proj.destroy();
@@ -260,30 +261,33 @@ var app = {
         proj.heroStats.health = 0;
         app.killCheck(proj);
     },
-    damageRangeBase: function(proj, base) {
-        // Dmg the base
-        base.baseHealth -= proj.damage;
-        var damText = game.add.text(base.body.position.x, base.body.position.y, '-'+ proj.damage, { fontSize: '12px', fill: '#E74C3C' });
+    damageBase: function(unit, base) {
+        var loser = 0,
+        damage = unit.heroStats.damage;
+        console.log(unit.heroStats.damage);
+        console.log(unit.dmg);
+        // Who's base attacked?
+        if(base == app.playerBase) {
+            loser = 1;
+        }
+        // Hero or projectile?
+        if(unit.dmg) {
+            damage = unit.dmg;
+        }
+        // Remove health
+        base.baseHealth -= damage;
+        // Add damage tick
+        var damText = game.add.text(base.body.position.x, base.body.position.y, '-'+damage, { fontSize: '12px', fill: '#E74C3C' });
         app.hitText.add(damText);
-        // app.killCheck(hero);
+        if(unit.dmg) {
+            console.log("We should probably remove this projectile");
+            unit.heroStats.health = 0;
+            app.killCheck(unit);
+        }
+        // End the game?
         if (base.baseHealth <= 0) {
             base.destroy();
-        }
-        proj.heroStats.health = 0;
-        app.killCheck(proj);
-    },
-    damagePlayerBase: function(eHero) {
-        app.playerBase.baseHealth -= eHero.heroStats.damage;
-
-        if (app.playerBase.baseHealth <= 0) {
-            app.playerBase.destroy();
-        }
-    },
-    damageEnemyBase: function(pHero) {
-        app.enemyBase.baseHealth -= pHero.heroStats.damage;
-
-        if (app.enemyBase.baseHealth <= 0) {
-            app.enemyBase.destroy();
+            app.gameOver(loser);
         }
     },
     killCheck: function(item) {
@@ -445,7 +449,7 @@ var app = {
         var proj = projGroup.create(hero.position.x, hero.position.y, 'bullet');
         proj.target = hero.target;
         proj.team = hero.team;
-        proj.damage = hero.heroStats.damage;
+        proj.dmg = hero.heroStats.damage;
         proj.body.bounce.x = 0;
         proj.heroStats = {
             health: 1
@@ -458,6 +462,17 @@ var app = {
         game.physics.arcade.enable(proj);
         // Delay next firing
         hero.heroStats.canFire = game.time.time + hero.heroStats.fireRate;
+    },
+    gameOver: function() {
+        // End the game
+        // Clear out groups
+        // var groups = [app.pHeroes, app.eHeroes, app.pProj, app.eProj, app.bases];
+        // groups.forEach(function(group) {
+        //     group.forEach(function(item) {
+        //         group.remove(item);
+        //     });
+        // });
+        app.state = 'over';
     }
 }
 
@@ -474,6 +489,9 @@ function update() {
 }
 
 function autoSpawn() {
+    if(app.state == 'over') {
+        return;
+    }
     var classArray = [
         {
             'class': 'miner',
