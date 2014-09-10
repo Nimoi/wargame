@@ -102,7 +102,7 @@ var app = {
         this.miners = game.add.group();
 
         // Resources
-        this.resourceText = game.add.text(16, 16, 'copper: '+app.resources.player.copper, { fontSize: '16px', fill: '#fff' });
+        this.resourceText = game.add.text(16, 16, 'gold: '+app.resources.player.gold, { fontSize: '16px', fill: '#fff' });
         this.resourceText.fixedToCamera = true;
 
         // this.pHeroes.checkWorldBounds = true;
@@ -153,15 +153,20 @@ var app = {
         game.physics.arcade.collide(app.pProj, app.bases, this.damageBase);
         game.physics.arcade.collide(app.eProj, app.bases, this.damageBase);
 
-        // We need to combine these into parent groups!? Always causes me errors
+        /*
+         * Heroes
+         * These should be combined.
+         */
         app.pHeroes.forEach(function(hero) {
             app.updateHero(hero);
         });
-
         app.eHeroes.forEach(function(hero) {
             app.updateHero(hero);
         });
-
+        /*
+         * Projectiles
+         * Enemy and player. These should be combined.
+         */
         app.pProj.forEach(function(proj) {
             if(!proj) {
                 return;
@@ -184,7 +189,9 @@ var app = {
                 proj.destroy();
             }
         });
-
+        /*
+         * Floating text
+         */
         app.hitText.forEach(function(item) {
             if(!item) {
                 return;
@@ -195,7 +202,9 @@ var app = {
                 item.destroy();
             }
         });
-
+        /*
+         * Camera Movement
+         */
         if (app.cursors.up.isDown) {
             game.camera.y -= 12;
         } else if (app.cursors.down.isDown) {
@@ -211,17 +220,17 @@ var app = {
     state: 'play',
     resources: {
         player: {
-            copper: 20 
+            gold: 20 
         },
         enemy: {
-            copper: 20 
+            gold: 20 
         }
     },
     stats: {
         prices: {
             miner: 10,
             fighter: 10,
-            archer: 20,
+            archer: 40,
             thief: 15
         },
         restrictions: {
@@ -231,29 +240,32 @@ var app = {
             thief: 0
         }
     },
-    priceCheck: function(classType, resources) {
+    /*
+     * Check the price, deduct the amount if available
+     */
+    priceCheck: function(classType, team) {
         switch(classType) {
             case 'miner':
-                if(resources >= app.stats.prices.miner) {
-                    app.resources.player.copper -= app.stats.prices.miner;
+                if(app.resources[team].gold >= app.stats.prices.miner) {
+                    app.resources[team].gold -= app.stats.prices.miner;
                     return true;
                 }
             break;
             case 'fighter':
-                if(resources >= app.stats.prices.fighter) {
-                    app.resources.player.copper -= app.stats.prices.fighter;
+                if(app.resources[team].gold >= app.stats.prices.fighter) {
+                    app.resources[team].gold -= app.stats.prices.fighter;
                     return true;
                 }
             break;
             case 'archer':
-                if(resources >= app.stats.prices.archer) {
-                    app.resources.player.copper -= app.stats.prices.archer;
+                if(app.resources[team].gold >= app.stats.prices.archer) {
+                    app.resources[team].gold -= app.stats.prices.archer;
                     return true;
                 }
             break;
             case 'thief':
-                if(resources >= app.stats.prices.thief) {
-                    app.resources.player.copper -= app.stats.prices.thief;
+                if(app.resources[team].gold >= app.stats.prices.thief) {
+                    app.resources[team].gold -= app.stats.prices.thief;
                     return true;
                 }
             break;
@@ -262,44 +274,15 @@ var app = {
             break;
         }
     },
-    // This is bullshit, but I don't know why the 'resources' reference
-    // won't remove resources from player/enemy properly. I resort to bullshit.
-    ePriceCheck: function(classType, resources) {
-        switch(classType) {
-            case 'miner':
-                if(resources >= app.stats.prices.miner) {
-                    app.resources.enemy.copper -= app.stats.prices.miner;
-                    return true;
-                }
-            break;
-            case 'fighter':
-                if(resources >= app.stats.prices.fighter) {
-                    app.resources.enemy.copper -= app.stats.prices.fighter;
-                    return true;
-                }
-            break;
-            case 'archer':
-                if(resources >= app.stats.prices.archer) {
-                    app.resources.enemy.copper -= app.stats.prices.archer;
-                    return true;
-                }
-            break;
-            case 'thief':
-                if(resources >= app.stats.prices.thief) {
-                    app.resources.enemy.copper -= app.stats.prices.thief;
-                    return true;
-                }
-            break;
-            default:
-                return false;
-            break;
-        }
-    },
+    /*
+     * Spawn player heroes.
+     * These two functions should really be combined.
+     */
     addPlayerHero: function(classType) {
-        if(!app.priceCheck(classType, app.resources.player.copper)) {
+        if(!app.priceCheck(classType, 'player')) {
             return false;
         } else {
-            app.resourceText.text = 'copper: '+app.resources.player.copper;
+            app.resourceText.text = 'gold: '+app.resources.player.gold;
         }
         var comb = app.pHeroes.create(32, game.world.height - 214, classType);
         // Scale and enable physics
@@ -323,7 +306,7 @@ var app = {
         // comb.tint = 0x348899;
     },
     addEnemyHero: function(classType) {
-        if(!app.ePriceCheck(classType, app.resources.enemy.copper)) {
+        if(!app.priceCheck(classType, 'enemy')) {
             return false;
         }
         var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, classType);
@@ -420,6 +403,14 @@ var app = {
                 item.body.checkCollision.left = false;
                 item.body.checkCollision.right = false;
                 item.alive = false;
+                if(!item.team) {
+                  app.resources.player.gold += 5;
+                  // console.log("OH SHIT, PLAYER GOT $5");
+                } else {
+                  app.resources.enemy.gold += 5;
+                  // console.log("OH SHIT, ENEMY GOT $5");
+                }
+                app.resourceText.text = 'gold: '+app.resources.player.gold;
             }
         }
     },
@@ -525,8 +516,6 @@ var app = {
                         if(hero.team) {
                             var text = game.add.text(hero.body.position.x, hero.body.position.y, '+1', { fontSize: '12px', fill: '#8FCC00', stroke: '#141414', strokeThickness: 2 });
                             app.hitText.add(text);
-                        } else {
-                            console.log(hero.heroStats.collected);
                         }
                     }
                 }
@@ -553,11 +542,11 @@ var app = {
                         // Deposit resources and return to mine
                         hero.mobile = 1;
                         if(hero.team) {
-                            app.resources.player.copper += hero.heroStats.collected;
-                            app.resourceText.text = 'copper: '+app.resources.player.copper;
+                            app.resources.player.gold += hero.heroStats.collected;
+                            app.resourceText.text = 'gold: '+app.resources.player.gold;
                             hero.heroStats.collected = 0;
                         } else {
-                            app.resources.enemy.copper += hero.heroStats.collected;
+                            app.resources.enemy.gold += hero.heroStats.collected;
                             hero.heroStats.collected = 0;
                         }
                     }
@@ -694,7 +683,7 @@ function autoSpawn() {
     if(!game.paused) {
         app.addEnemyHero(rand.class);
     }
-    window.setTimeout(autoSpawn, rand.time);
+    window.setTimeout(autoSpawn, 1000);
 }
 
 // Woo!
