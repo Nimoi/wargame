@@ -135,6 +135,7 @@ var app = {
 
         // TEST
         // Spawn enemy fighters
+        app.addEnemyHero('miner');
         autoSpawn();
     },
     /*
@@ -230,32 +231,28 @@ var app = {
             thief: 0
         }
     },
-    priceCheck: function(classType, team) {
-        // var resources = app.resources.enemy;
-        // if(team == 'player') {
-        //     resources = app.resources.player;
-        // }
+    priceCheck: function(classType, resources) {
         switch(classType) {
             case 'miner':
-                if(app.resources.player.copper >= app.stats.prices.miner) {
+                if(resources >= app.stats.prices.miner) {
                     app.resources.player.copper -= app.stats.prices.miner;
                     return true;
                 }
             break;
             case 'fighter':
-                if(app.resources.player.copper >= app.stats.prices.fighter) {
+                if(resources >= app.stats.prices.fighter) {
                     app.resources.player.copper -= app.stats.prices.fighter;
                     return true;
                 }
             break;
             case 'archer':
-                if(app.resources.player.copper >= app.stats.prices.archer) {
+                if(resources >= app.stats.prices.archer) {
                     app.resources.player.copper -= app.stats.prices.archer;
                     return true;
                 }
             break;
             case 'thief':
-                if(app.resources.player.copper >= app.stats.prices.thief) {
+                if(resources >= app.stats.prices.thief) {
                     app.resources.player.copper -= app.stats.prices.thief;
                     return true;
                 }
@@ -265,8 +262,41 @@ var app = {
             break;
         }
     },
+    // This is bullshit, but I don't know why the 'resources' reference
+    // won't remove resources from player/enemy properly. I resort to bullshit.
+    ePriceCheck: function(classType, resources) {
+        switch(classType) {
+            case 'miner':
+                if(resources >= app.stats.prices.miner) {
+                    app.resources.enemy.copper -= app.stats.prices.miner;
+                    return true;
+                }
+            break;
+            case 'fighter':
+                if(resources >= app.stats.prices.fighter) {
+                    app.resources.enemy.copper -= app.stats.prices.fighter;
+                    return true;
+                }
+            break;
+            case 'archer':
+                if(resources >= app.stats.prices.archer) {
+                    app.resources.enemy.copper -= app.stats.prices.archer;
+                    return true;
+                }
+            break;
+            case 'thief':
+                if(resources >= app.stats.prices.thief) {
+                    app.resources.enemy.copper -= app.stats.prices.thief;
+                    return true;
+                }
+            break;
+            default:
+                return false;
+            break;
+        }
+    },
     addPlayerHero: function(classType) {
-        if(!app.priceCheck(classType, 'player')) {
+        if(!app.priceCheck(classType, app.resources.player.copper)) {
             return false;
         } else {
             app.resourceText.text = 'copper: '+app.resources.player.copper;
@@ -293,6 +323,9 @@ var app = {
         // comb.tint = 0x348899;
     },
     addEnemyHero: function(classType) {
+        if(!app.ePriceCheck(classType, app.resources.enemy.copper)) {
+            return false;
+        }
         var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, classType);
         // Scale and enable physics
         // comb.scale.setTo(0.1, 0.1);
@@ -658,9 +691,10 @@ function autoSpawn() {
         }
     ],
     rand = classArray[Math.floor(Math.random() * classArray.length)];
-    // app.addEnemyHero(rand.class);
-    app.addEnemyHero('miner');
-    // window.setTimeout(autoSpawn, rand.time);
+    if(!game.paused) {
+        app.addEnemyHero(rand.class);
+    }
+    window.setTimeout(autoSpawn, rand.time);
 }
 
 // Woo!
