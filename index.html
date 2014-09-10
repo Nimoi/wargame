@@ -3,28 +3,30 @@
 <head>
 	<meta charset="UTF-8" />
     <title>War Game</title>
-    <style type="text/css">
-        body {
-            margin: 0;
-        }
-        canvas {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .test {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-    <div id="stage"></div>
-    <div class="test">
-        <button id="spawnMiner">Spawn Miner</button>
-        <button id="spawnFighter">Spawn Fighter</button>
-        <button id="spawnArcher">Spawn Archer</button>
-        <button id="spawnThief">Spawn Thief</button>
+    <div id="stage">
+        <div class="menu">
+            <div class="spawn" id="spawnMiner">
+                <div class="title">Spawn Miner</div>
+                <div class="price"></div>
+            </div>
+            <div class="spawn" id="spawnFighter">
+                <div class="title">Spawn Fighter</div>
+                <div class="price"></div>
+            </div>
+            <div class="spawn" id="spawnArcher">
+                <div class="title">Spawn Archer</div>
+                <div class="price"></div>
+            </div>
+            <div class="spawn" id="spawnThief">
+                <div class="title">Spawn Thief</div>
+                <div class="price"></div>
+            </div>
+        </div>
+    </div>
+    <div class="instructions">
         <p><strong>TEST!</strong> Pan camera with arrow keys</p>
     </div>
 

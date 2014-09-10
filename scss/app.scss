@@ -1,0 +1,38 @@
+body {
+    font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+    margin: 0;
+}
+
+#stage {
+    position: relative;
+}
+#stage,
+canvas {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.menu {
+    position: absolute;
+    bottom: 0;
+    left: 2px;
+    z-index: 10;
+    .spawn {
+        background: #ccc;
+        // line-height: 40px;
+        padding: 10px 8px;
+        border: none;
+        margin: 0 2px;
+        float: left;
+        cursor: default;
+        .price {
+            
+        }
+    }
+}
+
+.instructions {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}

@@ -22,7 +22,7 @@ var app = {
      */
     preload: function() {
         // Preload our assets
-        game.load.image('sky', 'img/sky.png');
+        game.load.image('sky', 'img/magicsky.gif');
         game.load.image('ground', 'img/platform.png');
         game.load.image('miner', 'img/125c.jpg');
         game.load.image('fighter', 'img/125b.jpeg');
@@ -49,7 +49,7 @@ var app = {
         }, false);
 
         // Map boundaries
-        game.world.setBounds(0, 0, 1600, 600);
+        game.world.setBounds(0, 0, 2000, 600);
 
         // Arcade Physics system
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -102,7 +102,8 @@ var app = {
         this.miners = game.add.group();
 
         // Resources
-        this.resourceText = game.add.text(16, 16, 'copper: 0', { fontSize: '16px', fill: '#fff' });
+        this.resourceText = game.add.text(16, 16, 'copper: '+app.resources.player.copper, { fontSize: '16px', fill: '#fff' });
+        this.resourceText.fixedToCamera = true;
 
         // this.pHeroes.checkWorldBounds = true;
         // this.pHeroes.setAll('outOfBoundsKill', true);
@@ -195,22 +196,81 @@ var app = {
         });
 
         if (app.cursors.up.isDown) {
-            game.camera.y -= 8;
+            game.camera.y -= 12;
         } else if (app.cursors.down.isDown) {
-            game.camera.y += 8;
+            game.camera.y += 12;
         }
 
         if (app.cursors.left.isDown) {
-            game.camera.x -= 8;
+            game.camera.x -= 12;
         } else if (app.cursors.right.isDown) {
-            game.camera.x += 8;
+            game.camera.x += 12;
         }
     },
     state: 'play',
     resources: {
-        copper: 0
+        player: {
+            copper: 20 
+        },
+        enemy: {
+            copper: 20 
+        }
+    },
+    stats: {
+        prices: {
+            miner: 10,
+            fighter: 10,
+            archer: 20,
+            thief: 15
+        },
+        restrictions: {
+            miner: 5,
+            fighter: 0,
+            archer: 0,
+            thief: 0
+        }
+    },
+    priceCheck: function(classType, team) {
+        // var resources = app.resources.enemy;
+        // if(team == 'player') {
+        //     resources = app.resources.player;
+        // }
+        switch(classType) {
+            case 'miner':
+                if(app.resources.player.copper >= app.stats.prices.miner) {
+                    app.resources.player.copper -= app.stats.prices.miner;
+                    return true;
+                }
+            break;
+            case 'fighter':
+                if(app.resources.player.copper >= app.stats.prices.fighter) {
+                    app.resources.player.copper -= app.stats.prices.fighter;
+                    return true;
+                }
+            break;
+            case 'archer':
+                if(app.resources.player.copper >= app.stats.prices.archer) {
+                    app.resources.player.copper -= app.stats.prices.archer;
+                    return true;
+                }
+            break;
+            case 'thief':
+                if(app.resources.player.copper >= app.stats.prices.thief) {
+                    app.resources.player.copper -= app.stats.prices.thief;
+                    return true;
+                }
+            break;
+            default:
+                return false;
+            break;
+        }
     },
     addPlayerHero: function(classType) {
+        if(!app.priceCheck(classType, 'player')) {
+            return false;
+        } else {
+            app.resourceText.text = 'copper: '+app.resources.player.copper;
+        }
         var comb = app.pHeroes.create(32, game.world.height - 214, classType);
         // Scale and enable physics
         // comb.scale.setTo(0.1,0.1);
@@ -414,7 +474,8 @@ var app = {
                 // Travel to node
                 var targetMine = app.enemyMine,
                 targetBase = app.enemyBase,
-                distance;
+                distance,
+                distanceToBase = 290;
                 if(hero.team) {
                     targetMine = app.playerMine;
                     targetBase = app.playerBase;
@@ -431,15 +492,20 @@ var app = {
                         if(hero.team) {
                             var text = game.add.text(hero.body.position.x, hero.body.position.y, '+1', { fontSize: '12px', fill: '#8FCC00', stroke: '#141414', strokeThickness: 2 });
                             app.hitText.add(text);
+                        } else {
+                            console.log(hero.heroStats.collected);
                         }
                     }
                 }
                 // Return to base
                 if(hero.heroStats.collected >= 10) {
                     hero.collecting = 0;
+                    if(!hero.team) {
+                        distanceToBase -= hero.width + 28;
+                    }
                     distance = game.physics.arcade.distanceBetween(hero, targetBase);
-                    console.log(distance);
-                    if(distance > 290) {
+                    // console.log(distance);
+                    if(distance > distanceToBase) {
                         // Travel in base direction
                         if(hero.team) {
                             if(hero.body.velocity.x > -100) {
@@ -454,8 +520,11 @@ var app = {
                         // Deposit resources and return to mine
                         hero.mobile = 1;
                         if(hero.team) {
-                            app.resources.copper += hero.heroStats.collected;
-                            app.resourceText.text = 'copper: '+app.resources.copper;
+                            app.resources.player.copper += hero.heroStats.collected;
+                            app.resourceText.text = 'copper: '+app.resources.player.copper;
+                            hero.heroStats.collected = 0;
+                        } else {
+                            app.resources.enemy.copper += hero.heroStats.collected;
                             hero.heroStats.collected = 0;
                         }
                     }
@@ -589,8 +658,9 @@ function autoSpawn() {
         }
     ],
     rand = classArray[Math.floor(Math.random() * classArray.length)];
-    app.addEnemyHero(rand.class);
-    window.setTimeout(autoSpawn, rand.time);
+    // app.addEnemyHero(rand.class);
+    app.addEnemyHero('miner');
+    // window.setTimeout(autoSpawn, rand.time);
 }
 
 // Woo!
