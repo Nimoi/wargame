@@ -220,10 +220,10 @@ var app = {
     state: 'play',
     resources: {
         player: {
-            gold: 20 
+            gold: 40 
         },
         enemy: {
-            gold: 20 
+            gold: 40 
         }
     },
     stats: {
@@ -328,23 +328,38 @@ var app = {
         // comb.tint = 0x962D3E;
     },
     damageMelee: function(pHero, eHero) {
-        pHero.heroStats.health -= eHero.heroStats.damage;
-        eHero.heroStats.health -= pHero.heroStats.damage;
+        var eDmgMult = 1,
+        pDmgMult = 1,
+        eDmgReduction = 0,
+        pDmgReduction = 0,
+        eDamage,
+        pDamage;
+        if(pHero.classType == 'thief') {
+          if(pHero.heroStats.stealth == 1) {
+            pHero.heroStats.stealth = 0;
+            pDmgMult = 2;
+            pDmgReduction = 0.5;
+          }
+        }
+        if(eHero.classType == 'thief') {
+          if(eHero.heroStats.stealth == 1) {
+            eHero.heroStats.stealth = 0;
+            eDmgMult = 2;
+            eDmgReduction = 0.5;
+          }
+        }
+        pDamage = pHero.heroStats.damage * (pDmgMult - eDmgReduction).toFixed(0);
+        eDamage = eHero.heroStats.damage * (eDmgMult - pDmgReduction).toFixed(0);
+        pHero.heroStats.health -= eDamage;
+        eHero.heroStats.health -= pDamage;
 
-        var pDamText = game.add.text(pHero.body.position.x, pHero.body.position.y, '-'+ eHero.heroStats.damage, { fontSize: '12px', fill: '#E74C3C' });
-        var eDamText = game.add.text(eHero.body.position.x, eHero.body.position.y, '-'+ pHero.heroStats.damage, { fontSize: '12px', fill: '#E74C3C' });
+        var pDamText = game.add.text(pHero.body.position.x, pHero.body.position.y, '-'+ eDamage, { fontSize: '12px', fill: '#E74C3C' });
+        var eDamText = game.add.text(eHero.body.position.x, eHero.body.position.y, '-'+ pDamage, { fontSize: '12px', fill: '#E74C3C' });
         app.hitText.add(pDamText);
         app.hitText.add(eDamText);
 
         app.killCheck(pHero);
         app.killCheck(eHero);
-
-        if(pHero.classType == 'thief') {
-            pHero.heroStats.stealth = 0;
-        }
-        if(eHero.classType == 'thief') {
-            eHero.heroStats.stealth = 0;
-        }
     },
     damageRange: function(proj, hero) {
         // Remove hero velocity (stun)
@@ -404,11 +419,9 @@ var app = {
                 item.body.checkCollision.right = false;
                 item.alive = false;
                 if(!item.team) {
-                  app.resources.player.gold += 5;
-                  // console.log("OH SHIT, PLAYER GOT $5");
+                  app.resources.player.gold += 2;
                 } else {
-                  app.resources.enemy.gold += 5;
-                  // console.log("OH SHIT, ENEMY GOT $5");
+                  app.resources.enemy.gold += 2;
                 }
                 app.resourceText.text = 'gold: '+app.resources.player.gold;
             }
