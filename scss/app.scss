@@ -12,11 +12,28 @@ canvas {
     margin: 0 auto;
 }
 
-.menu {
+#callout {
+    text-align: center;
+    text-decoration: none;
+    font-size: 60px;
+    font-weight: 700;
+    color: #fff;
+    display: block;
+    width: 100%;
+    position: absolute;
+    top: 40px;
+    left: 0;
+}
+
+#menu {
+    display: none;
     position: absolute;
     bottom: 0;
     left: 2px;
     z-index: 10;
+    &.active {
+        display: block;
+    }
     .spawn {
         background: #ccc;
         // line-height: 40px;

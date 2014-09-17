@@ -24,14 +24,14 @@ var app = {
         // Preload our assets
         game.load.image('sky', 'img/magicsky.gif');
         game.load.image('ground', 'img/platform.png');
-        game.load.image('miner', 'img/125c.jpg');
-        game.load.image('fighter', 'img/125b.jpeg');
-        game.load.image('archer', 'img/125.jpeg');
-        game.load.image('thief', 'img/125a.jpeg');
         game.load.image('enemyFighter', 'img/goomba.png');
         game.load.image('base', 'img/base.gif');
         game.load.image('mine', 'img/mine.gif');
         game.load.image('bullet', 'img/bullet.png');
+        game.load.spritesheet('miner', 'img/minersprite.png', 32, 32, 2);
+        game.load.spritesheet('fighter', 'img/fightersprite.png', 32, 32, 2);
+        game.load.spritesheet('archer', 'img/archersprite.png', 32, 32, 2);
+        game.load.spritesheet('thief', 'img/thiefsprite.png', 32, 32, 2);
     },
     create: function() {
         // Event listeners
@@ -47,6 +47,7 @@ var app = {
         document.getElementById('spawnThief').addEventListener('click', function() {
             app.addPlayerHero('thief');
         }, false);
+        document.getElementById('callout').addEventListener('click', app.onCallout, false);
 
         // Map boundaries
         game.world.setBounds(0, 0, 2000, 600);
@@ -70,29 +71,9 @@ var app = {
         this.bases = game.add.group();
         this.bases.enableBody = true;
 
-        this.playerBase = this.bases.create(32, game.world.height - 214, 'base');
-        this.playerBase.tint = 0x348899;
-        this.playerBase.body.immovable = true;
-        this.playerBase.baseHealth = 1000;
-
-        this.enemyBase = this.bases.create(game.world.width - 232, game.world.height - 214, 'base');
-        this.enemyBase.tint = 0x962D3E;
-        this.enemyBase.body.immovable = true;
-        this.enemyBase.baseHealth = 1000;
-
         // Mines
         this.mines = game.add.group();
         this.mines.enableBody = true;
-
-        this.playerMine = this.mines.create(364, game.world.height - 164, 'mine');
-        this.playerMine.tint = 0x348899;
-        this.playerMine.body.immovable = true;
-        this.playerMine.baseHealth = 500;
-
-        this.enemyMine = this.mines.create(game.world.width - 464, game.world.height - 164, 'mine');
-        this.enemyMine.tint = 0x962D3E;
-        this.enemyMine.body.immovable = true;
-        this.enemyMine.baseHealth = 500;
 
         // Combatants
         this.pHeroes = game.add.group();
@@ -100,10 +81,6 @@ var app = {
 
         // Miners
         this.miners = game.add.group();
-
-        // Resources
-        this.resourceText = game.add.text(16, 16, 'gold: '+app.resources.player.gold, { fontSize: '16px', fill: '#fff' });
-        this.resourceText.fixedToCamera = true;
 
         // this.pHeroes.checkWorldBounds = true;
         // this.pHeroes.setAll('outOfBoundsKill', true);
@@ -130,13 +107,7 @@ var app = {
         this.cursors = game.input.keyboard.createCursorKeys();
 
         // Camera
-        // game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
         style = 'STYLE_PLATFORMER';
-
-        // TEST
-        // Spawn enemy fighters
-        app.addEnemyHero('miner');
-        autoSpawn();
     },
     /*
      * Game loop
@@ -217,7 +188,45 @@ var app = {
             game.camera.x += 12;
         }
     },
-    state: 'play',
+    state: 'start',
+    onCallout: function() {
+      if(app.state == 'start') {
+        app.startGame();
+        document.getElementById('callout').innerHTML = '';
+        document.getElementById('menu').className = 'active';
+      }
+    },
+    startGame: function() {
+      // Bases
+      this.playerBase = this.bases.create(32, game.world.height - 214, 'base');
+      this.playerBase.tint = 0x348899;
+      this.playerBase.body.immovable = true;
+      this.playerBase.baseHealth = 1000;
+
+      this.enemyBase = this.bases.create(game.world.width - 232, game.world.height - 214, 'base');
+      this.enemyBase.tint = 0x962D3E;
+      this.enemyBase.body.immovable = true;
+      this.enemyBase.baseHealth = 1000;
+
+      // Mines
+      this.playerMine = this.mines.create(364, game.world.height - 164, 'mine');
+      this.playerMine.tint = 0x348899;
+      this.playerMine.body.immovable = true;
+      this.playerMine.baseHealth = 500;
+
+      this.enemyMine = this.mines.create(game.world.width - 464, game.world.height - 164, 'mine');
+      this.enemyMine.tint = 0x962D3E;
+      this.enemyMine.body.immovable = true;
+      this.enemyMine.baseHealth = 500;
+
+      // Resources
+      this.resourceText = game.add.text(16, 16, 'gold: '+app.resources.player.gold, { fontSize: '16px', fill: '#fff' });
+      this.resourceText.fixedToCamera = true;
+
+      // Spawn enemy fighters
+      app.addEnemyHero('miner');
+      autoSpawn();
+    },
     resources: {
         player: {
             gold: 40 
@@ -286,7 +295,7 @@ var app = {
         }
         var comb = app.pHeroes.create(32, game.world.height - 214, classType);
         // Scale and enable physics
-        // comb.scale.setTo(0.1,0.1);
+        comb.scale.setTo(2,2);
         game.physics.arcade.enable(comb);
         // Class stats
         comb.classType = classType;
@@ -295,8 +304,10 @@ var app = {
         comb.mobile = 1;
         comb.target = 0;
         // Flip sprite
-        comb.anchor.setTo(.5,.5);
-        // comb.scale.x *= -1;
+        if(classType == 'miner') {
+          comb.body.setSize(14, 15, 32, 32);
+        }
+        // comb.anchor.setTo(.5,.5);
         // Body physics
         comb.body.bounce.y = 0.2;
         comb.body.bounce.x = 1.5;
@@ -304,6 +315,7 @@ var app = {
         comb.body.collideWorldBounds = true;
         comb.body.velocity.x = 100;
         // comb.tint = 0x348899;
+        comb.animations.add('walk', [0, 1], 1, true);
     },
     addEnemyHero: function(classType) {
         if(!app.priceCheck(classType, 'enemy')) {
@@ -311,7 +323,7 @@ var app = {
         }
         var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, classType);
         // Scale and enable physics
-        // comb.scale.setTo(0.1, 0.1);
+        comb.scale.setTo(2,2);
         game.physics.arcade.enable(comb);
         // Class stats
         comb.classType = classType;
@@ -319,6 +331,12 @@ var app = {
         comb.team = 0;
         comb.mobile = 1;
         comb.target = 0;
+        // Flip sprite
+        if(classType == 'miner') {
+          comb.body.setSize(14, 15, 17, 17);
+        }
+        comb.anchor.setTo(.5,.5);
+        comb.scale.x *= -1;
         // Body physics
         comb.body.bounce.y = 0.2;
         comb.body.bounce.x = 1.5;
@@ -326,6 +344,7 @@ var app = {
         comb.body.collideWorldBounds = true;
         comb.body.velocity.x = -100;
         // comb.tint = 0x962D3E;
+        comb.animations.add('walk', [0, 1], 1, true);
     },
     damageMelee: function(pHero, eHero) {
         var eDmgMult = 1,
@@ -483,7 +502,10 @@ var app = {
         if(hero == undefined || hero.heroStats.health <= 0) {
             return;
         }
+        hero.animations.play('walk', 8, true);
         switch(hero.classType) {
+            case 'fighter': 
+            break;
             case 'archer':
                 // Look for a target
                 if(!hero.target) {
@@ -512,13 +534,15 @@ var app = {
                 var targetMine = app.enemyMine,
                 targetBase = app.enemyBase,
                 distance,
-                distanceToBase = 290;
+                distanceToBase = 192,
+                overlapping = false;
                 if(hero.team) {
                     targetMine = app.playerMine;
                     targetBase = app.playerBase;
                 }
                 distance = game.physics.arcade.distanceBetween(hero, targetMine);
-                if(distance <= 40 && hero.heroStats.collected < 10) {
+                overlapping = game.physics.arcade.overlap(hero, targetMine);
+                if(overlapping && hero.heroStats.collected < 10) {
                     hero.mobile = 0;
                     hero.collecting = 1;
                     hero.body.velocity.x = 0;
@@ -536,10 +560,12 @@ var app = {
                 if(hero.heroStats.collected >= 10) {
                     hero.collecting = 0;
                     if(!hero.team) {
-                        distanceToBase -= hero.width + 28;
+                        // distanceToBase -= hero.width + 28;
+                        distanceToBase = 126;
                     }
                     distance = game.physics.arcade.distanceBetween(hero, targetBase);
-                    // console.log(distance);
+                    //console.log(distance);
+                    //console.log(distanceToBase);
                     if(distance > distanceToBase) {
                         // Travel in base direction
                         if(hero.team) {
