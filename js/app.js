@@ -237,7 +237,7 @@ var app = {
       this.playerMine.body.immovable = true;
       this.playerMine.baseHealth = 500;
 
-      this.enemyMine = this.mines.create(game.world.width - 464, game.world.height - 154, 'mine');
+      this.enemyMine = this.mines.create(game.world.width - 464, game.world.height - 149, 'mine');
       // this.enemyMine.tint = 0x962D3E;
       this.enemyMine.body.immovable = true;
       this.enemyMine.baseHealth = 500;
