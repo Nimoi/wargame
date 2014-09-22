@@ -25,8 +25,8 @@ var app = {
         game.load.image('sky', 'img/magicsky.gif');
         game.load.image('ground', 'img/platform.png');
         game.load.image('enemyFighter', 'img/goomba.png');
-        game.load.image('base', 'img/base.gif');
-        game.load.image('mine', 'img/mine.gif');
+        game.load.image('base', 'img/base.png');
+        game.load.image('mine', 'img/mine.png');
         game.load.image('bullet', 'img/bullet.png');
         game.load.spritesheet('miner', 'img/minersprite.png', 32, 32, 2);
         game.load.spritesheet('fighter', 'img/fightersprite.png', 32, 32, 2);
@@ -187,6 +187,29 @@ var app = {
         } else if (app.cursors.right.isDown) {
             game.camera.x += 12;
         }
+        /*
+         * UI
+         */
+        if(app.resources.player.gold >= app.stats.prices.miner) {
+          document.getElementById('spawnMiner').className = "spawn affordable";
+        } else {
+          document.getElementById('spawnMiner').className = "spawn";
+        }
+        if(app.resources.player.gold >= app.stats.prices.fighter) {
+          document.getElementById('spawnFighter').className = "spawn affordable";
+        } else {
+          document.getElementById('spawnFighter').className = "spawn";
+        }
+        if(app.resources.player.gold >= app.stats.prices.archer) {
+          document.getElementById('spawnArcher').className = "spawn affordable";
+        } else {
+          document.getElementById('spawnArcher').className = "spawn";
+        }
+        if(app.resources.player.gold >= app.stats.prices.thief) {
+          document.getElementById('spawnThief').className = "spawn affordable";
+        } else {
+          document.getElementById('spawnThief').className = "spawn";
+        }
     },
     state: 'start',
     onCallout: function() {
@@ -198,30 +221,36 @@ var app = {
     },
     startGame: function() {
       // Bases
-      this.playerBase = this.bases.create(32, game.world.height - 214, 'base');
+      this.playerBase = this.bases.create(92, game.world.height - 178, 'base');
       this.playerBase.tint = 0x348899;
       this.playerBase.body.immovable = true;
       this.playerBase.baseHealth = 1000;
 
-      this.enemyBase = this.bases.create(game.world.width - 232, game.world.height - 214, 'base');
+      this.enemyBase = this.bases.create(game.world.width - 172, game.world.height - 178, 'base');
       this.enemyBase.tint = 0x962D3E;
       this.enemyBase.body.immovable = true;
       this.enemyBase.baseHealth = 1000;
 
       // Mines
-      this.playerMine = this.mines.create(364, game.world.height - 164, 'mine');
-      this.playerMine.tint = 0x348899;
+      this.playerMine = this.mines.create(364, game.world.height - 149, 'mine');
+      // this.playerMine.tint = 0x348899;
       this.playerMine.body.immovable = true;
       this.playerMine.baseHealth = 500;
 
-      this.enemyMine = this.mines.create(game.world.width - 464, game.world.height - 164, 'mine');
-      this.enemyMine.tint = 0x962D3E;
+      this.enemyMine = this.mines.create(game.world.width - 464, game.world.height - 154, 'mine');
+      // this.enemyMine.tint = 0x962D3E;
       this.enemyMine.body.immovable = true;
       this.enemyMine.baseHealth = 500;
 
       // Resources
-      this.resourceText = game.add.text(16, 16, 'gold: '+app.resources.player.gold, { fontSize: '16px', fill: '#fff' });
+      this.resourceText = game.add.text(16, 16, 'Gold: '+app.resources.player.gold, { fontSize: '16px', fill: '#fff' });
       this.resourceText.fixedToCamera = true;
+
+      // Update buttons
+      document.getElementById('spawnMiner').querySelector('.price').innerHTML += app.stats.prices.miner;
+      document.getElementById('spawnFighter').querySelector('.price').innerHTML += app.stats.prices.fighter;
+      document.getElementById('spawnArcher').querySelector('.price').innerHTML += app.stats.prices.archer;
+      document.getElementById('spawnThief').querySelector('.price').innerHTML += app.stats.prices.thief;
 
       // Spawn enemy fighters
       app.addEnemyHero('miner');
@@ -291,9 +320,9 @@ var app = {
         if(!app.priceCheck(classType, 'player')) {
             return false;
         } else {
-            app.resourceText.text = 'gold: '+app.resources.player.gold;
+            app.resourceText.text = 'Gold: '+app.resources.player.gold;
         }
-        var comb = app.pHeroes.create(32, game.world.height - 214, classType);
+        var comb = app.pHeroes.create(92, game.world.height - 178, classType);
         // Scale and enable physics
         comb.scale.setTo(2,2);
         game.physics.arcade.enable(comb);
@@ -321,7 +350,7 @@ var app = {
         if(!app.priceCheck(classType, 'enemy')) {
             return false;
         }
-        var comb = app.eHeroes.create(game.world.width - 232, game.world.height - 214, classType);
+        var comb = app.eHeroes.create(game.world.width - 172, game.world.height - 178, classType);
         // Scale and enable physics
         comb.scale.setTo(2,2);
         game.physics.arcade.enable(comb);
@@ -353,6 +382,7 @@ var app = {
         pDmgReduction = 0,
         eDamage,
         pDamage;
+        // Thief special attacks
         if(pHero.classType == 'thief') {
           if(pHero.heroStats.stealth == 1) {
             pHero.heroStats.stealth = 0;
@@ -366,6 +396,13 @@ var app = {
             eDmgMult = 2;
             eDmgReduction = 0.5;
           }
+        }
+        // Archer reduced melee
+        if(pHero.classType == 'archer') {
+          pDmgMult = 0.2;
+        }
+        if(eHero.classType == 'archer') {
+          eDmgMult = 0.2;
         }
         pDamage = pHero.heroStats.damage * (pDmgMult - eDmgReduction).toFixed(0);
         eDamage = eHero.heroStats.damage * (eDmgMult - pDmgReduction).toFixed(0);
@@ -442,7 +479,7 @@ var app = {
                 } else {
                   app.resources.enemy.gold += 2;
                 }
-                app.resourceText.text = 'gold: '+app.resources.player.gold;
+                app.resourceText.text = 'Gold: '+app.resources.player.gold;
             }
         }
     },
@@ -534,7 +571,7 @@ var app = {
                 var targetMine = app.enemyMine,
                 targetBase = app.enemyBase,
                 distance,
-                distanceToBase = 192,
+                distanceToBase = 100,
                 overlapping = false;
                 if(hero.team) {
                     targetMine = app.playerMine;
@@ -559,13 +596,9 @@ var app = {
                 // Return to base
                 if(hero.heroStats.collected >= 10) {
                     hero.collecting = 0;
-                    if(!hero.team) {
-                        // distanceToBase -= hero.width + 28;
-                        distanceToBase = 126;
-                    }
                     distance = game.physics.arcade.distanceBetween(hero, targetBase);
-                    //console.log(distance);
-                    //console.log(distanceToBase);
+                    // console.log(distance);
+                    // console.log(distanceToBase);
                     if(distance > distanceToBase) {
                         // Travel in base direction
                         if(hero.team) {
@@ -582,7 +615,7 @@ var app = {
                         hero.mobile = 1;
                         if(hero.team) {
                             app.resources.player.gold += hero.heroStats.collected;
-                            app.resourceText.text = 'gold: '+app.resources.player.gold;
+                            app.resourceText.text = 'Gold: '+app.resources.player.gold;
                             hero.heroStats.collected = 0;
                         } else {
                             app.resources.enemy.gold += hero.heroStats.collected;
