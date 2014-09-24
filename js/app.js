@@ -242,12 +242,12 @@ var app = {
       app.resources.enemy.gold = 40;
       app.resourceText.text = 'Gold: '+app.resources.player.gold;
 
+      // Start game state
+      app.state = "start";
+
       // Spawn enemy fighters
       app.addEnemyHero('miner');
       autoSpawn();
-
-      // Start game state
-      app.state = "start";
     },
     resources: {
         player: {
