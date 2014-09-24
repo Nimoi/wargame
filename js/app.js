@@ -2,6 +2,7 @@
  * War-like-type-kinda game with
  * PHASER JS
  */
+
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'stage', { preload: preload, create: create, update: update });
 
 var app = {
@@ -34,21 +35,6 @@ var app = {
         game.load.spritesheet('thief', 'img/thiefsprite.png', 32, 32, 2);
     },
     create: function() {
-        // Event listeners
-        document.getElementById('spawnMiner').addEventListener('click', function() {
-            app.addPlayerHero('miner');
-        }, false);
-        document.getElementById('spawnFighter').addEventListener('click', function() {
-            app.addPlayerHero('fighter');
-        }, false);
-        document.getElementById('spawnArcher').addEventListener('click', function() {
-            app.addPlayerHero('archer');
-        }, false);
-        document.getElementById('spawnThief').addEventListener('click', function() {
-            app.addPlayerHero('thief');
-        }, false);
-        document.getElementById('callout').addEventListener('click', app.onCallout, false);
-
         // Map boundaries
         game.world.setBounds(0, 0, 2000, 600);
 
@@ -766,15 +752,30 @@ function autoSpawn() {
     window.setTimeout(autoSpawn, 1000);
 }
 
-// Woo!
-function extendObj(thing, other) {
-    for (var x in other) {
-        if (other.hasOwnProperty(x)) {
-            thing[x] = other[x];
-        }
-    };
-    return thing;
-};
+// Event listeners
+document.getElementById('spawnMiner').addEventListener('click', function() {
+   app.addPlayerHero('miner');
+}, false);
+document.getElementById('spawnFighter').addEventListener('click', function() {
+   app.addPlayerHero('fighter');
+}, false);
+document.getElementById('spawnArcher').addEventListener('click', function() {
+   app.addPlayerHero('archer');
+}, false);
+document.getElementById('spawnThief').addEventListener('click', function() {
+   app.addPlayerHero('thief');
+}, false);
+document.getElementById('callout').addEventListener('click', app.onCallout, false);
 
-extendObj(app, { balls: true });
-console.log(app.balls);
+// Woo!
+// function extendObj(thing, other) {
+//     for (var x in other) {
+//         if (other.hasOwnProperty(x)) {
+//             thing[x] = other[x];
+//         }
+//     };
+//     return thing;
+// };
+
+// extendObj(app, { balls: true });
+// console.log(app.balls);
