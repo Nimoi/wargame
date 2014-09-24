@@ -213,11 +213,10 @@ var app = {
     },
     state: 'start',
     onCallout: function() {
-      if(app.state == 'start') {
-        app.startGame();
-        document.getElementById('callout').innerHTML = '';
-        document.getElementById('menu').className = 'active';
-      }
+      game.camera.reset();
+      app.startGame();
+      document.getElementById('callout').innerHTML = '';
+      document.getElementById('menu').className = 'active';
     },
     startGame: function() {
       // Bases
@@ -247,14 +246,19 @@ var app = {
       this.resourceText.fixedToCamera = true;
 
       // Update buttons
-      document.getElementById('spawnMiner').querySelector('.price').innerHTML += app.stats.prices.miner;
-      document.getElementById('spawnFighter').querySelector('.price').innerHTML += app.stats.prices.fighter;
-      document.getElementById('spawnArcher').querySelector('.price').innerHTML += app.stats.prices.archer;
-      document.getElementById('spawnThief').querySelector('.price').innerHTML += app.stats.prices.thief;
+      document.getElementById('spawnMiner').querySelector('.price').innerHTML = "$"+app.stats.prices.miner;
+      document.getElementById('spawnFighter').querySelector('.price').innerHTML = "$"+app.stats.prices.fighter;
+      document.getElementById('spawnArcher').querySelector('.price').innerHTML = "$"+app.stats.prices.archer;
+      document.getElementById('spawnThief').querySelector('.price').innerHTML = "$"+app.stats.prices.thief;
 
       // Spawn enemy fighters
       app.addEnemyHero('miner');
       autoSpawn();
+
+      // Update resources
+      app.resources.player.gold = 40;
+      app.resources.enemy.gold = 40;
+      app.resourceText.text = 'Gold: '+app.resources.player.gold;
     },
     resources: {
         player: {
@@ -704,15 +708,19 @@ var app = {
         // Delay next firing
         hero.heroStats.canFire = game.time.time + hero.heroStats.fireRate;
     },
-    gameOver: function() {
+    gameOver: function(loser) {
         // End the game
         // Clear out groups
-        // var groups = [app.pHeroes, app.eHeroes, app.pProj, app.eProj, app.bases];
-        // groups.forEach(function(group) {
-        //     group.forEach(function(item) {
-        //         group.remove(item);
-        //     });
-        // });
+        var message;
+        game.world.removeAll();
+        app.create();
+        if(loser) {
+          message = "YOU LOSE!<br>Play Again";
+        } else {
+          message = "YOU WON!<br>Play Again";
+        }
+        document.getElementById('callout').innerHTML = message;
+        document.getElementById('menu').className = '';
         app.state = 'over';
     }
 }
