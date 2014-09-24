@@ -3,7 +3,7 @@
  * PHASER JS
  */
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'stage', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(800, 400, Phaser.AUTO, 'stage', { preload: preload, create: create, update: update });
 
 var app = {
     platforms: undefined,
@@ -36,7 +36,7 @@ var app = {
     },
     create: function() {
         // Map boundaries
-        game.world.setBounds(0, 0, 2000, 600);
+        game.world.setBounds(0, 0, 2000, 400);
 
         // Arcade Physics system
         game.physics.startSystem(Phaser.Physics.ARCADE);
