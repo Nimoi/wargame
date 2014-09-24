@@ -237,14 +237,17 @@ var app = {
       document.getElementById('spawnArcher').querySelector('.price').innerHTML = "$"+app.stats.prices.archer;
       document.getElementById('spawnThief').querySelector('.price').innerHTML = "$"+app.stats.prices.thief;
 
-      // Spawn enemy fighters
-      app.addEnemyHero('miner');
-      autoSpawn();
-
       // Update resources
       app.resources.player.gold = 40;
       app.resources.enemy.gold = 40;
       app.resourceText.text = 'Gold: '+app.resources.player.gold;
+
+      // Spawn enemy fighters
+      app.addEnemyHero('miner');
+      autoSpawn();
+
+      // Start game state
+      app.state = "start";
     },
     resources: {
         player: {
